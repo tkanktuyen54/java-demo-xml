@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: java-demo-xml
+  devtools:
+    restart:
+      poll-interval: 500ms
+      quiet-period: 200ms
