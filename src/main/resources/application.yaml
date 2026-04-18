@@ -1,6 +1,30 @@
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
 spring:
   application:
     name: java-demo-xml
+  datasource:
+    # Phải trùng database trong DBeaver (ảnh của bạn: postgres @ localhost:5432). Đổi bằng DATABASE_URL nếu cần.
+    # Bảng: public.tbl_user, public.tbl_address
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/postgres}
+    driver-class-name: org.postgresql.Driver
+    # Bạn đã set trong env: trong file này CHỈ giữ dạng ${...} — KHÔNG ghi user/mật khẩu thật dạng chữ thường.
+    # Thứ tự Spring Boot: biến môi trường (DATABASE_*) ghi đè; nếu không có env thì mới dùng giá trị sau dấu ":" (default).
+    username: ${DATABASE_USERNAME:macos}
+    password: ${DATABASE_PASSWORD:}
+    hikari:
+      pool-name: java-demo-xml-pg
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+  sql:
+    init:
+      # Do not run schema.sql / data.sql — use whatever tables and rows already exist on the connected PostgreSQL database.
+      mode: never
   devtools:
     restart:
       poll-interval: 500ms
