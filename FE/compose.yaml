@@ -1,0 +1,12 @@
+name: khoa-fe
+
+services:
+  frontend:
+    image: khoa-frontend:latest
+    build: .
+    environment:
+      BACKEND_URL: ${BACKEND_URL:-http://host.docker.internal:8081}
+    ports:
+      - '${FRONTEND_BIND_ADDRESS:-127.0.0.1}:${FRONTEND_PORT:-4201}:80'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'

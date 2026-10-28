@@ -15,22 +15,39 @@ Hai project độc lập trong cùng repository:
 - Góc học tập, trình xem video, chuyển bài, đánh dấu hoàn thành và lưu tiến độ theo tài khoản.
 - Kiểm tra quyền ở backend: cần đăng nhập và có đơn đăng ký đúng khóa học để lấy URL video bài học.
 
-## Chạy toàn bộ bằng Docker
+## Chạy Docker riêng cho từng đội
 
-Cần Docker Desktop đang chạy. Từ thư mục gốc:
+Cần Docker Desktop đang chạy. Mỗi đội có Dockerfile, Compose và cấu hình môi trường riêng:
+
+- `BE/compose.yaml`: backend và MySQL; project Compose `khoa` để giữ volume dữ liệu hiện tại.
+- `FE/compose.yaml`: chỉ frontend; project Compose `khoa-fe`, gọi API qua `BACKEND_URL`.
+
+Từ thư mục gốc, build và chạy từng phần bằng các lệnh riêng:
 
 ```powershell
-docker compose -p khoa up -d --build
+# Đội BE: chạy backend và MySQL
+docker compose -f BE/compose.yaml up -d --build
+
+# Đội FE: chỉ chạy frontend
+docker compose -f FE/compose.yaml up -d --build
 ```
 
-- Website: http://localhost:4200
-- API: http://localhost:8080
-- Swagger: http://localhost:8080/swagger-ui.html
+- Website Docker: http://localhost:4201
+- API: http://localhost:8081
+- Swagger: http://localhost:8081/swagger-ui.html
 - MySQL: `localhost:3307`, database/user `khoa`, password mặc định `khoa_local_password`.
+
+Backend Docker dùng cổng `8081` trên máy, ánh xạ vào cổng `8080` trong container để tránh trùng với backend chạy trực tiếp bằng IDE ở cổng `8080`.
+
+Frontend không có `depends_on` backend và không dùng chung Docker network với BE. Mặc định Nginx chuyển `/api` đến `http://host.docker.internal:8081`, còn trình duyệt luôn gọi API cùng origin với FE để giữ cookie và CSRF. FE có thể khởi động khi BE chưa chạy; các chức năng cần API sẽ hoạt động khi BE sẵn sàng.
+
+Mỗi đội có thể copy `.env.example` trong thư mục của mình thành `.env`. Chạy Compose từ chính thư mục đó để nạp cấu hình riêng. Khi BE chạy trên máy khác, đặt `BACKEND_URL` trong `FE/.env` thành địa chỉ BE có thể truy cập, ví dụ `http://192.168.1.50:8081`; không thêm `/api` hoặc dấu `/` cuối URL. Đội BE đặt `BACKEND_BIND_ADDRESS=0.0.0.0` trong `BE/.env` để nhận kết nối từ máy khác. Với Docker Engine trên Linux, cũng dùng địa chỉ bind này nếu FE truy cập BE qua `host.docker.internal`.
+
+Thay đổi `BACKEND_URL` chỉ cần chạy lại `docker compose up -d` trong `FE`, không cần build lại image. FE đang phát triển bằng `npm start` vẫn dùng backend IDE ở cổng `8080` theo `FE/proxy.conf.json`.
 
 Tạo tài khoản trên màn hình **Bắt đầu học**, rồi chọn khóa học → **Đăng ký khóa học** → **Xác nhận đăng ký demo** → xem video.
 
-Database dùng Docker volume nên dữ liệu vẫn còn sau khi dừng container. Dừng dịch vụ bằng `docker compose -p khoa stop`. Có thể copy `.env.example` thành `.env` để đổi mật khẩu database trước lần khởi tạo đầu tiên; `.env` được bỏ qua bởi Git. Không chạy đồng thời Docker frontend/backend và dev server trên cùng cổng.
+Database tiếp tục dùng volume `khoa_khoa_mysql`, nên dữ liệu hiện tại được giữ lại. Dừng từng đội từ thư mục gốc bằng `docker compose -f BE/compose.yaml stop` hoặc `docker compose -f FE/compose.yaml stop`; dừng FE không ảnh hưởng BE/MySQL. Mật khẩu database được đặt trong `BE/.env` trước lần khởi tạo đầu tiên; `.env` được bỏ qua bởi Git. Nếu đã có `.env` ở thư mục gốc từ cấu hình cũ, chuyển các biến database sang `BE/.env`.
 
 ## Chạy để phát triển
 
@@ -39,7 +56,7 @@ Cần JDK 21, Node.js 24.15+ và Docker Desktop cho MySQL.
 **1. MySQL** — terminal tại thư mục gốc:
 
 ```powershell
-docker compose -p khoa up -d mysql
+docker compose -f BE/compose.yaml up -d mysql
 ```
 
 **2. Backend** — terminal riêng:
@@ -78,8 +95,14 @@ npm.cmd run build
 # Tại thư mục gốc, khi backend và MySQL đang chạy
 node scripts/smoke.mjs
 
+# Kiểm tra backend Docker
+node scripts/smoke.mjs http://127.0.0.1:8081
+
 # Kiểm tra cả qua proxy Angular
 node scripts/smoke.mjs http://127.0.0.1:4200
+
+# Kiểm tra qua Nginx của frontend Docker
+node scripts/smoke.mjs http://127.0.0.1:4201
 ```
 
 Smoke test tạo tài khoản và đơn demo mới, kiểm tra cookie/CSRF thật, login/logout, quyền xem video, chống đơn trùng và tiến độ sau khi đăng nhập lại. Không xóa dữ liệu hiện có.

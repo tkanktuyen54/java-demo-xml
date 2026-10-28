@@ -21,9 +21,34 @@ src/main/java/com/bigproject/
 
 Mỗi tính năng dùng `controller → service → repository`; DTO và entity nằm trong module tương ứng.
 
-## Chạy
+## Chạy bằng Docker
 
-Khởi động MySQL từ thư mục gốc: `docker compose -p khoa up -d mysql`.
+Đội BE quản lý `Dockerfile`, `compose.yaml` và MySQL ngay trong thư mục `BE`, không cần mã nguồn FE. Từ thư mục `BE`:
+
+```powershell
+# Build image backend
+docker compose build backend
+
+# Chạy backend và MySQL
+docker compose up -d
+
+# Build lại và chạy khi sửa code
+docker compose up -d --build backend
+
+# Xem log hoặc dừng các dịch vụ BE
+docker compose logs -f backend
+docker compose stop
+```
+
+API Docker: `http://localhost:8081`. Swagger Docker: `http://localhost:8081/swagger-ui.html`. MySQL: `localhost:3307`.
+
+Copy `.env.example` thành `.env` trong `BE` nếu cần đổi cổng hoặc mật khẩu. Giữ tên project `khoa` trong Compose để dùng tiếp volume `khoa_khoa_mysql`; dữ liệu hiện tại vẫn được giữ khi chuyển từ Compose chung sang Compose BE.
+
+Khi FE chạy trên máy khác, đặt `BACKEND_BIND_ADDRESS=0.0.0.0` trong `BE/.env` rồi chạy lại `docker compose up -d backend`. Đội FE dùng địa chỉ IP hoặc domain của máy BE trong `BACKEND_URL`; hai đội không cần chia sẻ Docker network. Với Docker Engine trên Linux, cũng dùng địa chỉ bind này nếu FE cùng máy truy cập API qua `host.docker.internal`.
+
+## Chạy để phát triển
+
+Khởi động MySQL từ thư mục `BE`: `docker compose up -d mysql`.
 
 ```powershell
 $env:JAVA_HOME = 'C:\duong-dan\jdk-21'
