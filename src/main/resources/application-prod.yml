@@ -1,5 +1,0 @@
-# Profile prod — bật bằng: SPRING_PROFILES_ACTIVE=prod
-logging:
-  level:
-    root: WARN
-    com.bigproject: INFO

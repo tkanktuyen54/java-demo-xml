@@ -1,5 +1,0 @@
-# Profile dev — bật bằng: SPRING_PROFILES_ACTIVE=dev (mặc định trong application.yml)
-logging:
-  level:
-    com.bigproject.core: DEBUG
-    com.bigproject.modules: DEBUG

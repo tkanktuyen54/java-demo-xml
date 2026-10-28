@@ -1,0 +1,182 @@
+<section class="container detail-page page-space">
+  <a class="back-link" routerLink="/">← Khám phá khóa học</a>
+  @if (loading()) {
+    <div class="loading-state" role="status">Đang mở một hành trình mới...</div>
+  } @else if (error()) {
+    <div class="empty-state" role="alert">
+      <h1>Chưa mở được khóa học</h1>
+      <p>{{ error() }}</p>
+      <button class="button" (click)="load()">Thử lại</button>
+    </div>
+  } @else if (detail(); as data) {
+    <div class="detail-layout">
+      <div class="detail-main">
+        <div class="detail-heading">
+          <div class="eyebrow">
+            {{ data.course.category }}
+            <span>/</span>
+            {{ data.course.level }}
+          </div>
+          <h1>{{ data.course.title }}</h1>
+          <p class="detail-subtitle">{{ data.course.subtitle }}</p>
+          <div class="detail-rating">
+            <span class="star">★★★★★</span>
+            <strong>{{ data.course.rating | number: '1.1-1' }}</strong>
+            <span>{{ data.course.studentCount | number }} học viên</span>
+            <span>· {{ data.lessons.length }} bài học</span>
+          </div>
+          <div class="teacher">
+            <span class="avatar">{{ data.course.instructor.charAt(0) }}</span>
+            <div>
+              <strong>{{ data.course.instructor }}</strong>
+              <small>{{ data.course.instructorTitle }}</small>
+            </div>
+          </div>
+        </div>
+        <div id="preview" class="preview-player">
+          @if (preview(); as video) {
+            <video
+              controls
+              playsinline
+              preload="metadata"
+              [src]="video.videoUrl"
+              (error)="mediaError.set(true)"
+              [attr.aria-label]="'Xem thử: ' + video.title"
+            ></video>
+            <div class="video-caption">
+              <span>▶ {{ video.title }}</span>
+              <button class="text-button" (click)="preview.set(null)">Đóng xem thử ×</button>
+            </div>
+            <p class="demo-video-note">
+              Clip minh họa trình phát (Flower · MDN), chưa phải nội dung bài giảng.
+            </p>
+            @if (mediaError()) {
+              <p class="form-error" role="alert">
+                Không tải được video. Kiểm tra kết nối Internet rồi mở lại video xem thử.
+              </p>
+            }
+          } @else {
+            <app-course-art [theme]="data.course.coverKey" />
+            <button class="preview-overlay" (click)="watchPreview()" [disabled]="previewLoading()">
+              <span class="big-play" aria-hidden="true">▶</span>
+              <strong>{{ previewLoading() ? 'Đang tải video...' : 'Xem thử miễn phí' }}</strong>
+            </button>
+          }
+        </div>
+        @if (previewError()) {
+          <p class="form-error" role="alert">{{ previewError() }}</p>
+        }
+        <section class="detail-block">
+          <div class="eyebrow">SAU HÀNH TRÌNH NÀY</div>
+          <h2>Bạn sẽ làm được gì?</h2>
+          <div class="outcomes">
+            @for (outcome of data.course.outcomes; track outcome) {
+              <div>
+                <span aria-hidden="true">✓</span>
+                {{ outcome }}
+              </div>
+            }
+          </div>
+        </section>
+        <section class="detail-block">
+          <h2>Về khóa học</h2>
+          <p class="description">{{ data.course.description }}</p>
+        </section>
+        <section class="detail-block">
+          <div class="syllabus-heading">
+            <h2>Lộ trình học tập</h2>
+            <span>{{ data.lessons.length }} bài · {{ data.course.hours }} giờ</span>
+          </div>
+          <div class="syllabus">
+            @for (lesson of data.lessons; track lesson.id; let index = $index) {
+              @if (index === 0 || lesson.chapter !== data.lessons[index - 1].chapter) {
+                <h3 class="chapter-title">{{ lesson.chapter }}</h3>
+              }
+              <div class="lesson-row">
+                <span class="lesson-number">{{ lesson.position.toString().padStart(2, '0') }}</span>
+                <div>
+                  <strong>{{ lesson.title }}</strong>
+                  <small>{{ lesson.durationMinutes }} phút</small>
+                </div>
+                @if (data.enrolled) {
+                  <a
+                    [routerLink]="['/learn', data.course.slug]"
+                    [queryParams]="{ lesson: lesson.id }"
+                    class="lesson-preview-link"
+                  >
+                    Vào học ↗
+                  </a>
+                } @else if (lesson.preview) {
+                  <button class="lesson-preview-link text-button" (click)="watchPreview()">
+                    Xem thử ▷
+                  </button>
+                } @else {
+                  <span class="lesson-lock" aria-label="Cần đăng ký khóa học">○</span>
+                }
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+      <aside class="purchase-card">
+        <span class="purchase-eyebrow">ĐẦU TƯ CHO CHÍNH MÌNH</span>
+        <div class="detail-prices">
+          <strong>{{ data.course.price | currency: 'VND' : 'symbol' : '1.0-0' : 'vi' }}</strong>
+          <del>{{ data.course.originalPrice | currency: 'VND' : 'symbol' : '1.0-0' : 'vi' }}</del>
+        </div>
+        <span class="discount-tag">
+          Tiết kiệm
+          {{ (1 - data.course.price / data.course.originalPrice) * 100 | number: '1.0-0' }}%
+        </span>
+        @if (data.enrolled) {
+          <a class="button full-width" [routerLink]="['/learn', data.course.slug]">
+            Tiếp tục học
+            <span>↗</span>
+          </a>
+          <p class="purchase-note">✓ Khóa học đã ở trong góc học tập của bạn.</p>
+        } @else {
+          <a class="button full-width" [routerLink]="['/checkout', data.course.slug]">
+            Đăng ký khóa học
+            <span>↗</span>
+          </a>
+          <button
+            class="button button-outline full-width"
+            (click)="watchPreview()"
+            [disabled]="previewLoading()"
+          >
+            {{ previewLoading() ? 'Đang tải...' : 'Xem thử miễn phí' }}
+            <span>▷</span>
+          </button>
+          <p class="purchase-note">Thanh toán demo · Không phát sinh giao dịch thật.</p>
+        }
+        <div class="purchase-features">
+          <h3>Hành trang của bạn</h3>
+          <p>
+            <span>▷</span>
+            {{ data.lessons.length }} bài học qua video
+          </p>
+          <p>
+            <span>◷</span>
+            {{ data.course.hours }} giờ nội dung theo lộ trình
+          </p>
+          <p>
+            <span>↻</span>
+            Xem lại bất cứ lúc nào
+          </p>
+          <p>
+            <span>✓</span>
+            Lưu tiến độ học tập
+          </p>
+          <p>
+            <span>⌁</span>
+            Học trên máy tính và điện thoại
+          </p>
+        </div>
+        <div class="purchase-footer">
+          Bắt đầu nhỏ. Tiến xa hơn.
+          <span>✳</span>
+        </div>
+      </aside>
+    </div>
+  }
+</section>

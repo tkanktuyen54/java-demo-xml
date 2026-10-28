@@ -1,0 +1,140 @@
+<section class="container page-space classroom">
+  <a class="back-link" routerLink="/my-learning">← Về góc học tập</a>
+  @if (loading()) {
+    <div class="loading-state" role="status">Đang chuẩn bị không gian học tập...</div>
+  } @else if (error()) {
+    <div class="empty-state" role="alert">
+      <h1>Chưa mở được bài học</h1>
+      <p>{{ error() }}</p>
+      <button class="button" (click)="load()">Thử lại</button>
+      <a class="text-link" routerLink="/login">Đăng nhập lại</a>
+    </div>
+  } @else if (detail(); as data) {
+    <div class="classroom-heading">
+      <div>
+        <div class="eyebrow">KHÔNG GIAN HỌC TẬP</div>
+        <h1>{{ data.course.title }}</h1>
+      </div>
+      <span class="classroom-progress">
+        {{ completed().length }}/{{ data.lessons.length }} bài hoàn thành
+        <strong>{{ percent() }}%</strong>
+      </span>
+    </div>
+    <div class="classroom-grid">
+      <div class="classroom-main">
+        <div class="classroom-video">
+          @if (videoLoading()) {
+            <div class="video-placeholder" role="status">Đang tải bài học...</div>
+          } @else if (video(); as currentVideo) {
+            <video
+              controls
+              playsinline
+              preload="metadata"
+              [src]="currentVideo.videoUrl"
+              (error)="mediaError.set(true)"
+              [attr.aria-label]="currentVideo.title"
+            ></video>
+          } @else {
+            <div class="video-placeholder">Chọn một bài học để bắt đầu.</div>
+          }
+        </div>
+        @if (mediaError()) {
+          <div class="form-error" role="alert">
+            Không tải được video. Kiểm tra kết nối mạng rồi
+            <button class="text-button" (click)="retryVideo()">thử lại</button>
+            .
+          </div>
+        }
+        @if (videoError()) {
+          <div class="form-error" role="alert">
+            {{ videoError() }}
+            <button class="text-button" (click)="retryVideo()">Tải lại bài học</button>
+          </div>
+        }
+        @if (selected(); as lesson) {
+          <div class="current-lesson">
+            <span class="eyebrow">
+              BÀI {{ lesson.position.toString().padStart(2, '0') }} ·
+              {{ lesson.durationMinutes }} PHÚT
+            </span>
+            <h2>{{ lesson.title }}</h2>
+            <div class="lesson-actions">
+              <button
+                class="button"
+                [disabled]="saving() || !video() || completed().includes(lesson.id)"
+                (click)="complete()"
+              >
+                {{
+                  saving()
+                    ? 'Đang lưu...'
+                    : completed().includes(lesson.id)
+                      ? '✓ Đã hoàn thành'
+                      : 'Đánh dấu hoàn thành'
+                }}
+              </button>
+              @if (next(); as nextLesson) {
+                <button class="button button-outline" (click)="select(nextLesson)">
+                  Bài tiếp theo
+                  <span>→</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+        <div class="lesson-description">
+          <h3>Một chút tiến bộ, mỗi ngày.</h3>
+          <p>
+            Bạn có thể xem lại bài học và chọn bất kỳ phần nào trong lộ trình. Đánh dấu hoàn thành
+            để lưu tiến độ trong góc học tập.
+          </p>
+          <p class="demo-video-note">
+            Video hiện là clip minh họa trình phát (Flower · MDN), chưa phải nội dung giảng dạy của
+            khóa học.
+          </p>
+        </div>
+        @if (percent() === 100) {
+          <div class="completion-banner" role="status">
+            <span aria-hidden="true">✳</span>
+            <div>
+              <h3>Bạn đã hoàn thành lộ trình!</h3>
+              <p>Mang những điều vừa học vào bước tiếp theo của bạn.</p>
+            </div>
+            <a routerLink="/" class="text-link">Khám phá tiếp ↗</a>
+          </div>
+        }
+      </div>
+      <aside class="classroom-sidebar">
+        <div class="sidebar-heading">
+          <h2>Nội dung khóa học</h2>
+          <span>{{ percent() }}% hoàn thành</span>
+          <progress
+            [value]="completed().length"
+            [max]="data.lessons.length"
+            aria-label="Tiến độ khóa học"
+          ></progress>
+        </div>
+        @for (lesson of data.lessons; track lesson.id; let index = $index) {
+          @if (index === 0 || lesson.chapter !== data.lessons[index - 1].chapter) {
+            <h3 class="chapter-title">{{ lesson.chapter }}</h3>
+          }
+          <button
+            class="classroom-lesson"
+            [class.current]="selectedId() === lesson.id"
+            [attr.aria-current]="selectedId() === lesson.id ? 'step' : null"
+            (click)="select(lesson)"
+          >
+            <span class="lesson-status" [class.done]="completed().includes(lesson.id)">
+              {{
+                completed().includes(lesson.id) ? '✓' : lesson.position.toString().padStart(2, '0')
+              }}
+            </span>
+            <span>
+              <strong>{{ lesson.title }}</strong>
+              <small>▷ {{ lesson.durationMinutes }} phút</small>
+            </span>
+          </button>
+        }
+      </aside>
+    </div>
+  }
+</section>

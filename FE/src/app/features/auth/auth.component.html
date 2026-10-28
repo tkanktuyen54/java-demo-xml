@@ -1,0 +1,117 @@
+<section class="container auth-page">
+  <div class="auth-story">
+    <div class="eyebrow">MỖI NGÀY, MỘT CHÚT TIẾN BỘ</div>
+    <h1>
+      Hành trình mới.
+      <br />
+      <em>
+        Vẫn là bạn,
+        <br />
+        nhưng tốt hơn.
+      </em>
+    </h1>
+    <p>Một không gian để khám phá, học hỏi và biến những ý tưởng thành hiện thực.</p>
+    <div class="auth-art" aria-hidden="true">
+      <span>✳</span>
+      <div class="auth-book">
+        <i>
+          your
+          <br />
+          next
+          <br />
+          <em>chapter.</em>
+        </i>
+        <b>↗</b>
+      </div>
+      <span>✧</span>
+    </div>
+    <small>Học điều mới. Mở lối riêng.</small>
+  </div>
+  <div class="auth-form-wrap">
+    <a class="back-link" routerLink="/">← Về trang khám phá</a>
+    <div class="auth-form-heading">
+      <span class="auth-wave" aria-hidden="true">{{ register ? '✦' : '↗' }}</span>
+      <h2>{{ register ? 'Bắt đầu cùng Khoa.' : 'Chào mừng trở lại.' }}</h2>
+      <p>
+        {{
+          register
+            ? 'Tạo tài khoản để mở ra những điều mới.'
+            : 'Tiếp tục hành trình học tập của bạn.'
+        }}
+      </p>
+    </div>
+    <form #form="ngForm" (ngSubmit)="submit(form)" class="auth-form">
+      @if (register) {
+        <label for="name">Họ và tên</label>
+        <input
+          id="name"
+          name="name"
+          type="text"
+          autocomplete="name"
+          placeholder="Nguyễn Minh Anh"
+          required
+          minlength="2"
+          maxlength="100"
+          [(ngModel)]="name"
+          [disabled]="pending()"
+        />
+      }
+      <label for="email">Địa chỉ email</label>
+      <input
+        id="email"
+        name="email"
+        type="email"
+        autocomplete="email"
+        placeholder="ban@example.com"
+        required
+        email
+        maxlength="254"
+        [(ngModel)]="email"
+        [disabled]="pending()"
+      />
+      <label for="password">Mật khẩu</label>
+      <div class="password-field">
+        <input
+          id="password"
+          name="password"
+          [type]="showPassword() ? 'text' : 'password'"
+          [autocomplete]="register ? 'new-password' : 'current-password'"
+          [placeholder]="register ? 'Ít nhất 8 ký tự' : 'Nhập mật khẩu của bạn'"
+          required
+          [minlength]="register ? 8 : 1"
+          maxlength="72"
+          [(ngModel)]="password"
+          [disabled]="pending()"
+        />
+        <button
+          class="text-button"
+          type="button"
+          (click)="showPassword.set(!showPassword())"
+          [attr.aria-label]="showPassword() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+        >
+          {{ showPassword() ? 'Ẩn' : 'Hiện' }}
+        </button>
+      </div>
+      @if (register) {
+        <small class="field-hint">Mật khẩu từ 8 ký tự, tối đa 72 byte UTF-8.</small>
+      }
+      @if (error()) {
+        <p class="form-error" role="alert">{{ error() }}</p>
+      }
+      <button class="button full-width" type="submit" [disabled]="pending()">
+        {{ pending() ? 'Đang xử lý...' : register ? 'Tạo tài khoản' : 'Đăng nhập' }}
+        <span aria-hidden="true">↗</span>
+      </button>
+    </form>
+    <p class="auth-switch">
+      {{ register ? 'Đã có tài khoản?' : 'Bạn mới đến Khoa?' }}
+      <a [routerLink]="register ? '/login' : '/register'" [queryParams]="{ next: next }">
+        {{ register ? 'Đăng nhập' : 'Tạo tài khoản miễn phí' }}
+      </a>
+    </p>
+    <div class="auth-reassurance">
+      <span aria-hidden="true">✓</span>
+      Một tài khoản cho tất cả hành trình học của bạn.
+    </div>
+  </div>
+</section>

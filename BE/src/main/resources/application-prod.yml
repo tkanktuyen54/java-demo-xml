@@ -1,0 +1,15 @@
+# Profile prod — bật bằng: SPRING_PROFILES_ACTIVE=prod
+logging:
+  level:
+    root: WARN
+    com.bigproject: INFO
+server:
+  servlet:
+    session:
+      cookie:
+        secure: ${COOKIE_SECURE:true}
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

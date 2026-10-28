@@ -35,3 +35,10 @@ build/
 ### Secrets (never commit) ###
 .env
 .env.*
+!.env.example
+node_modules/
+FE/dist/
+FE/out-tsc/
+FE/.angular/
+.local/
+*.log

@@ -1,0 +1,99 @@
+# Khoa API
+
+Backend Java 21 / Spring Boot 4, JDBC và MySQL. Giữ cấu trúc `core + modules` của project gốc.
+
+```text
+src/main/java/com/bigproject/
+├── BigProjectApplication.java
+├── core/
+│   ├── config/       # OpenAPI
+│   ├── exception/    # Lỗi API, không trả lỗi SQL ra client
+│   ├── security/     # Spring Security, session, CSRF, BCrypt
+│   └── util/
+└── modules/
+    ├── auth/         # Đăng ký, đăng nhập, thông tin tài khoản
+    ├── course/       # Danh sách, tìm kiếm, chi tiết, xem thử
+    ├── enrollment/   # Đơn hàng demo và khóa học đã đăng ký
+    ├── learning/     # Kiểm tra quyền xem bài học, lưu tiến độ
+    ├── user/         # Repository tài khoản; giữ API cũ, chỉ cho ADMIN
+    └── home/
+```
+
+Mỗi tính năng dùng `controller → service → repository`; DTO và entity nằm trong module tương ứng.
+
+## Chạy
+
+Khởi động MySQL từ thư mục gốc: `docker compose -p khoa up -d mysql`.
+
+```powershell
+$env:JAVA_HOME = 'C:\duong-dan\jdk-21'
+.\mvnw.cmd spring-boot:run
+```
+
+macOS/Linux: `./mvnw spring-boot:run` với `JAVA_HOME` trỏ tới JDK 21.
+
+API: `http://localhost:8080`. Swagger: `http://localhost:8080/swagger-ui.html`.
+
+## Cấu hình
+
+| Biến môi trường | Mặc định khi phát triển |
+| --- | --- |
+| `SPRING_PROFILES_ACTIVE` | `dev` |
+| `DATABASE_URL` | `jdbc:mysql://localhost:3307/khoa?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC` |
+| `DATABASE_USERNAME` | `khoa` |
+| `DATABASE_PASSWORD` | `khoa_local_password` |
+| `PORT` | `8080` |
+| `COOKIE_SECURE` | `false` ở dev, `true` ở prod |
+| `DEMO_CHECKOUT_ENABLED` | `true` ở dev, `false` ở prod |
+
+Flyway tự tạo schema và dữ liệu khóa học mẫu khi khởi động. Migration nằm ở `src/main/resources/db/migration`. Khi đã chạy migration, thêm file migration phiên bản mới để thay đổi dữ liệu/schema; không sửa migration đã áp dụng.
+
+## API
+
+| Method | Endpoint | Quyền |
+| --- | --- | --- |
+| GET | `/api/courses?q=&category=` | Công khai |
+| GET | `/api/courses/{slug}` | Công khai; không trả URL video bài học |
+| GET | `/api/courses/{slug}/preview` | Công khai, bài xem thử |
+| GET | `/api/config` | Công khai, trạng thái checkout demo |
+| GET | `/api/auth/csrf` | Công khai, lấy cookie CSRF |
+| POST | `/api/auth/register` | Công khai + CSRF; `{name,email,password}` |
+| POST | `/api/auth/login` | Công khai + CSRF; `{email,password}` |
+| POST | `/api/auth/logout` | Đăng nhập + CSRF |
+| GET | `/api/auth/me` | Đăng nhập |
+| GET | `/api/enrollments` | Đăng nhập |
+| POST | `/api/enrollments/{slug}/demo-checkout` | Đăng nhập + CSRF; demo phải bật |
+| GET | `/api/learning/{slug}/lessons/{id}` | Đã đăng ký đúng khóa học |
+| GET | `/api/learning/{slug}/progress` | Đã đăng ký đúng khóa học |
+| POST | `/api/learning/{slug}/lessons/{id}/complete` | Đã đăng ký đúng khóa học + CSRF |
+| GET | `/api/media/lessons/{id}` | Công khai với bài xem thử; các bài khác phải đăng nhập và đăng ký đúng khóa; hỗ trợ Range |
+
+Đăng ký thành công đồng thời đăng nhập. Backend lưu phiên bằng cookie `JSESSIONID` HttpOnly; không lưu token vào localStorage. Client lấy lại `/api/auth/csrf` sau login/register/logout, và gửi cookie `XSRF-TOKEN` qua header `X-XSRF-TOKEN` khi POST. Angular thực hiện phần header tự động khi gọi cùng origin; dev proxy và Nginx đã được cấu hình để giữ cùng origin.
+
+Giá đơn hàng lấy từ database, không nhận giá từ client. Khóa duy nhất và transaction ngăn tạo đơn trùng. Endpoint video và endpoint media kiểm tra người học và đơn đăng ký; endpoint bài học còn kiểm tra quan hệ bài học/khóa học. Clip Flower (MDN, CC0) được đóng gói tại `src/main/resources/media`, có file nguồn/giấy phép đi kèm; mọi bài mẫu hiện dùng chung clip minh họa.
+
+## Format code
+
+Dùng Spotless với Google Java Format (GOOGLE), thụt lề Java 2 dấu cách, thống nhất import và xuống dòng. `pom.xml` cũng dùng 2 dấu cách. Cấu hình formatter được cố định phiên bản trong `pom.xml`.
+
+```powershell
+.\mvnw.cmd spotless:apply
+.\mvnw.cmd spotless:check
+```
+
+`spotless:apply` sửa định dạng, `spotless:check` chỉ kiểm tra. `mvnw verify` cũng kiểm tra format. Không tự format lại các SQL migration đã chạy vì Flyway kiểm tra checksum của chúng.
+
+## Kiểm thử và đóng gói
+
+```powershell
+.\mvnw.cmd test
+.\mvnw.cmd package
+```
+
+Test dùng H2 ở chế độ MySQL, chạy độc lập với MySQL thật. Từ thư mục gốc, `node scripts/smoke.mjs` kiểm tra API trên MySQL đang chạy; script tạo một tài khoản kiểm thử mới và một đơn demo, không xóa dữ liệu hiện có.
+
+Nếu máy Windows báo lỗi chứng chỉ Maven `PKIX`, có thể dùng kho chứng chỉ Windows cho lệnh build (không tắt xác thực TLS):
+
+```powershell
+$env:MAVEN_OPTS = '-Djavax.net.ssl.trustStoreType=Windows-ROOT -Djavax.net.ssl.trustStore=NONE'
+```

@@ -1,0 +1,232 @@
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-content">
+      <div class="eyebrow">
+        <span class="tiny-star" aria-hidden="true">✳</span>
+        CHO NHỮNG BƯỚC TIẾN MỚI
+      </div>
+      <h1>
+        Học điều mới.
+        <br />
+        <span>Mở lối riêng.</span>
+        <svg aria-hidden="true" viewBox="0 0 400 18"><path d="M4 12Q175-6 390 8" /></svg>
+      </h1>
+      <p>
+        Mỗi kỹ năng là một cơ hội. Khám phá khóa học bạn yêu thích và bắt đầu hành trình phát triển,
+        theo cách của riêng mình.
+      </p>
+      <div class="hero-actions">
+        <a class="button" href="#courses">
+          Khám phá khóa học
+          <span aria-hidden="true">↗</span>
+        </a>
+        <span class="hero-note">
+          <span aria-hidden="true">▶</span>
+          Học qua video, mọi lúc
+        </span>
+      </div>
+      <div class="hero-community">
+        <div class="avatar-stack" aria-hidden="true">
+          <span>M</span>
+          <span>L</span>
+          <span>N</span>
+          <span>H</span>
+        </div>
+        <div>
+          <strong>Một cộng đồng ham học</strong>
+          <small>
+            Cùng nhau tiến bộ mỗi ngày
+            <span class="star">✦</span>
+          </small>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual" aria-label="Minh họa không gian học tập trực tuyến">
+      <span class="hero-orbit orbit-one" aria-hidden="true"></span>
+      <span class="hero-orbit orbit-two" aria-hidden="true"></span>
+      <span class="visual-spark spark-one" aria-hidden="true">✳</span>
+      <div class="hero-window">
+        <div class="window-bar">
+          <span class="window-dots">
+            <i></i>
+            <i></i>
+            <i></i>
+          </span>
+          <span>your next chapter</span>
+          <span aria-hidden="true">↗</span>
+        </div>
+        <div class="window-canvas">
+          <span class="canvas-tag">LEARN. CREATE. GROW.</span>
+          <div class="canvas-shapes" aria-hidden="true">
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+          </div>
+          <span class="canvas-word">
+            Hello,
+            <br />
+            <em>possibilities.</em>
+          </span>
+          <span class="cursor-tag" aria-hidden="true">↖ Bạn của tương lai</span>
+        </div>
+        <div class="window-bottom">
+          <div class="mini-play" aria-hidden="true">▶</div>
+          <div>
+            <strong>Một bài học. Nhiều cảm hứng.</strong>
+            <div class="mini-timeline"><i></i></div>
+          </div>
+          <span>12:08</span>
+        </div>
+      </div>
+      <div class="floating-card skill-card">
+        <span class="skill-icon" aria-hidden="true">↗</span>
+        <div>
+          <strong>+1 kỹ năng mới</strong>
+          <small>Gần hơn với mục tiêu của bạn</small>
+        </div>
+      </div>
+      <div class="floating-card learn-card">
+        <span aria-hidden="true">✦</span>
+        <strong>Đầu tư cho chính mình</strong>
+      </div>
+      <span class="visual-spark spark-two" aria-hidden="true">✧</span>
+    </div>
+  </div>
+</section>
+<div class="benefits-strip">
+  <div class="container benefits">
+    <div>
+      <span class="benefit-icon" aria-hidden="true">↗</span>
+      <strong>Kỹ năng gắn với thực tế</strong>
+    </div>
+    <div>
+      <span class="benefit-icon" aria-hidden="true">◷</span>
+      <strong>Học theo nhịp của bạn</strong>
+    </div>
+    <div>
+      <span class="benefit-icon" aria-hidden="true">▷</span>
+      <strong>Xem lại bất cứ lúc nào</strong>
+    </div>
+    <div>
+      <span class="benefit-icon" aria-hidden="true">✳</span>
+      <strong>Luôn có điều mới để học</strong>
+    </div>
+  </div>
+</div>
+
+<section id="courses" class="container catalog-section">
+  <div class="section-heading">
+    <div>
+      <div class="eyebrow">KHỞI ĐẦU TỪ SỰ TÒ MÒ</div>
+      <h2>Hôm nay, bạn muốn học gì?</h2>
+      <p>Một khóa học phù hợp có thể mở ra cả một hướng đi mới.</p>
+    </div>
+    <span class="section-index" aria-hidden="true">01 / KHÁM PHÁ</span>
+  </div>
+  <div class="catalog-toolbar">
+    <div class="category-tabs" role="group" aria-label="Danh mục khóa học">
+      @for (item of categories; track item) {
+        <button
+          [class.selected]="category() === item"
+          [attr.aria-pressed]="category() === item"
+          (click)="category.set(item)"
+        >
+          {{ item }}
+          @if (item === 'Tất cả' && courses().length) {
+            <span>{{ courses().length }}</span>
+          }
+        </button>
+      }
+    </div>
+    <label class="search-field">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="m16 16 5 5" />
+      </svg>
+      <input
+        type="search"
+        aria-label="Tìm kiếm khóa học"
+        placeholder="Tìm điều bạn muốn học..."
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)"
+      />
+    </label>
+  </div>
+  <div class="catalog-result-row">
+    <span aria-live="polite">
+      @if (!loading() && !error()) {
+        <strong>{{ filtered().length }}</strong>
+        khóa học dành cho bạn
+      }
+    </span>
+    <label class="sort-label">
+      Sắp xếp:
+      <select aria-label="Sắp xếp khóa học" [ngModel]="sort()" (ngModelChange)="sort.set($event)">
+        <option value="recommended">Đề xuất cho bạn</option>
+        <option value="rating">Đánh giá cao nhất</option>
+        <option value="price-asc">Giá tăng dần</option>
+        <option value="price-desc">Giá giảm dần</option>
+      </select>
+    </label>
+  </div>
+  @if (loading()) {
+    <div class="course-grid" aria-label="Đang tải khóa học" aria-busy="true">
+      @for (item of [1, 2, 3]; track item) {
+        <div class="skeleton-card">
+          <div></div>
+          <i></i>
+          <i></i>
+          <i></i>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="empty-state" role="alert">
+      <span class="empty-icon">↻</span>
+      <h3>Chưa tải được khóa học</h3>
+      <p>{{ error() }}</p>
+      <button class="button" (click)="load()">Thử lại</button>
+    </div>
+  } @else {
+    <div class="course-grid">
+      @for (course of filtered(); track course.id) {
+        <app-course-card [course]="course" />
+      } @empty {
+        <div class="empty-state no-results">
+          <span class="empty-icon">⌕</span>
+          <h3>Chưa tìm thấy khóa học phù hợp</h3>
+          <p>Thử từ khóa khác hoặc khám phá tất cả khóa học nhé.</p>
+          <button class="button button-outline" (click)="reset()">Xem tất cả khóa học</button>
+        </div>
+      }
+    </div>
+  }
+</section>
+
+<section class="container">
+  <div class="learning-cta">
+    <div>
+      <div class="eyebrow">BƯỚC TIẾP THEO BẮT ĐẦU TỪ BẠN</div>
+      <h2>
+        Tương lai không tự đến.
+        <br />
+        <em>Mình cùng tạo nên.</em>
+      </h2>
+      <p>Dành một chút thời gian hôm nay cho phiên bản tốt hơn của bạn ngày mai.</p>
+      <a class="button button-lime" routerLink="/register">
+        Bắt đầu hành trình
+        <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+    <div class="cta-art" aria-hidden="true">
+      <span>✳</span>
+      <i>
+        Keep
+        <br />
+        growing.
+      </i>
+      <span>↗</span>
+    </div>
+  </div>
+</section>

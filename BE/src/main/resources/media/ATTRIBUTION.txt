@@ -1,0 +1,7 @@
+flower.mp4
+Source: MDN interactive examples, cc0-videos sample collection
+License: CC0 1.0 Universal (see LICENSE-CC0.txt)
+https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4
+https://github.com/mdn/interactive-examples
+
+Used as a bundled demonstration of HTML video playback, not instructional course content.
