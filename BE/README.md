@@ -34,6 +34,17 @@ macOS/Linux: `./mvnw spring-boot:run` với `JAVA_HOME` trỏ tới JDK 21.
 
 API: `http://localhost:8080`. Swagger: `http://localhost:8080/swagger-ui.html`.
 
+Swagger hiển thị liên kết **Download OpenAPI Document** ngay dưới tiêu đề để tải spec đang được sinh từ các controller:
+
+- JSON: `http://localhost:8080/v3/api-docs?download=true` → `khoa-openapi.json`.
+- YAML: `http://localhost:8080/v3/api-docs.yaml?download=true` → `khoa-openapi.yaml`.
+
+Đường dẫn không có `?download=true` vẫn trả spec trực tiếp. Profile `prod` tắt cả Swagger và các endpoint OpenAPI.
+
+Chưa có tài khoản mặc định. Tạo tài khoản tại `http://localhost:4200/register`. Để thử API đăng nhập ngay trong Swagger, gọi `GET /api/auth/csrf`, rồi gọi `POST /api/auth/register` hoặc `POST /api/auth/login`. Swagger tự gửi header CSRF từ cookie. Gọi lại endpoint CSRF sau mỗi lần đăng nhập/đăng xuất trước khi thực hiện POST tiếp theo.
+
+Tham khảo: [springdoc OpenAPI JSON/YAML](https://springdoc.org/getting-started.html), [cấu hình Swagger UI](https://springdoc.org/ui-properties.html).
+
 ## Cấu hình
 
 | Biến môi trường | Mặc định khi phát triển |

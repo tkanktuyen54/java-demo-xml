@@ -77,6 +77,32 @@ class CoursePlatformIntegrationTests {
   }
 
   @Test
+  void openApiDocumentsCanBeDownloadedWithoutSigningIn() throws Exception {
+    mvc.perform(get("/v3/api-docs"))
+        .andExpect(status().isOk())
+        .andExpect(header().doesNotExist("Content-Disposition"))
+        .andExpect(jsonPath("$.info.title").value("Khoa Course API"));
+    mvc.perform(get("/v3/api-docs").param("download", "true"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        .andExpect(
+            header().string("Content-Disposition", "attachment; filename=\"khoa-openapi.json\""))
+        .andExpect(jsonPath("$.openapi").isNotEmpty())
+        .andExpect(jsonPath("$.paths['/api/auth/login']").exists())
+        .andExpect(jsonPath("$.paths['/api/courses/{slug}']").exists());
+    mvc.perform(get("/v3/api-docs.yaml").param("download", "true"))
+        .andExpect(status().isOk())
+        .andExpect(
+            header().string("Content-Disposition", "attachment; filename=\"khoa-openapi.yaml\""))
+        .andExpect(content().string(containsString("openapi:")))
+        .andExpect(content().string(containsString("/api/auth/login:")));
+    mvc.perform(get("/swagger-ui/swagger-initializer.js"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("requestInterceptor:")))
+        .andExpect(content().string(containsString("X-XSRF-TOKEN")));
+  }
+
+  @Test
   void authenticationValidatesHashesPasswordsAndInvalidatesLogoutSession() throws Exception {
     String email = "auth-" + UUID.randomUUID() + "@example.com";
     mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content("{}"))
