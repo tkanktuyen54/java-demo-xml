@@ -1,10 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth.service';
+import { CourseChatComponent } from './shared/course-chat.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CourseChatComponent],
   template: `
     <a class="skip-link" href="#main">Chuyển đến nội dung</a>
     <div class="announcement">
@@ -76,6 +77,7 @@ import { AuthService } from './core/auth.service';
         </span>
       </div>
     </footer>
+    <app-course-chat />
   `,
 })
 export class AppComponent {

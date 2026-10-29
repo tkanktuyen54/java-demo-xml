@@ -1,0 +1,7 @@
+slug,title,price,level,category,description,outcomes,audience,prerequisites
+angular-thuc-chien,Angular từ cơ bản đến thực chiến,599000,Cơ bản,Lập trình,Component routing và kết nối API.,Hiểu component Angular|Kết nối REST API,Người muốn xây ứng dụng frontend,Có kiến thức HTML CSS và JavaScript
+ui-ux-figma,UI/UX Design: Từ ý tưởng đến sản phẩm,499000,Cơ bản,Thiết kế,Thiết kế trải nghiệm sản phẩm với Figma.,Sử dụng Auto Layout|Tạo prototype,Người mới tìm hiểu thiết kế sản phẩm,
+java-spring-boot,Java Spring Boot: Xây dựng REST API,699000,Trung cấp,Lập trình,Tổ chức backend Java và kết nối MySQL.,Thiết kế REST API|Xác thực với Spring Security,Người muốn học backend,Có kiến thức Java cơ bản
+python-co-ban,Python: Bắt đầu hành trình lập trình,399000,Cơ bản,Lập trình,Biến kiểu dữ liệu vòng lặp và hàm.,Viết chương trình Python|Tự động hóa tác vụ,Người mới học lập trình,
+digital-marketing,Digital Marketing cho người mới,449000,Cơ bản,Marketing,Nội dung truyền thông và đo lường hiệu quả.,Lập kế hoạch nội dung|Đọc chỉ số,Người mới học marketing số,
+illustrator-sang-tao,Illustrator: Đánh thức sáng tạo,499000,Cơ bản,Thiết kế,Thiết kế vector hình khối và typography.,Thiết kế vector|Xuất sản phẩm đồ họa,Người mới học thiết kế đồ họa,

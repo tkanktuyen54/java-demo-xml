@@ -1,0 +1,7 @@
+# Intel macOS uses the last available PyTorch wheel for that platform.
+torch==2.2.2; sys_platform == "darwin" and platform_machine == "x86_64"
+torch==2.6.0; sys_platform != "darwin" or platform_machine != "x86_64"
+numpy==1.26.4
+fastapi==0.115.12
+uvicorn==0.34.3
+openpyxl==3.1.5

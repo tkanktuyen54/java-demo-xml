@@ -62,7 +62,11 @@ public class SecurityConfig {
                         "/v3/api-docs.yaml",
                         "/v3/api-docs/**")
                     .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register")
+                    .requestMatchers(
+                        HttpMethod.POST,
+                        "/api/auth/login",
+                        "/api/auth/register",
+                        "/api/chat/messages")
                     .permitAll()
                     .requestMatchers("/api/tbl-user", "/api/tbl-address", "/api/table-address")
                     .hasRole("ADMIN")

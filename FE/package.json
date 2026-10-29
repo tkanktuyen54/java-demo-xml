@@ -6,6 +6,7 @@
     "start": "ng serve --host 127.0.0.1 --proxy-config proxy.conf.json",
     "build": "ng build",
     "check": "tsc --noEmit -p tsconfig.app.json",
+    "test:chat": "node --experimental-strip-types --test src/app/core/chat-stream.test.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

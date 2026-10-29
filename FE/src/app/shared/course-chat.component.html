@@ -1,0 +1,151 @@
+@if (open()) {
+  <section
+    class="chat-panel"
+    role="dialog"
+    aria-labelledby="chat-title"
+    (keydown.escape)="toggle()"
+  >
+    <header class="chat-header">
+      <a class="chat-brand" routerLink="/" aria-label="Khoa, trang chủ">
+        khoa
+        <span>.</span>
+      </a>
+      <span id="chat-title">Trợ lý khóa học</span>
+      <button type="button" class="chat-close" (click)="toggle()" aria-label="Đóng tư vấn">
+        ×
+      </button>
+    </header>
+    @if (messages().length === 0) {
+      <div class="chat-intro">
+        <div class="chat-welcome">
+          <svg class="chat-spark" viewBox="0 0 48 48" aria-hidden="true">
+            <defs>
+              <linearGradient id="chat-spark-gradient" x1="0" y1="0" x2="1" y2="1">
+                <stop stop-color="#9cbe59" />
+                <stop offset=".5" stop-color="#317d70" />
+                <stop offset="1" stop-color="#6aabc9" />
+              </linearGradient>
+            </defs>
+            <path
+              fill="url(#chat-spark-gradient)"
+              d="M24 0C27 15 33 21 48 24 33 27 27 33 24 48 21 33 15 27 0 24 15 21 21 15 24 0Z"
+            />
+          </svg>
+          <h2>
+            Chào {{ auth.user()?.name?.split(' ')?.[0] || 'bạn' }},
+            <br />
+            hôm nay bạn muốn học gì?
+          </h2>
+          <p>Cùng tìm một khóa học phù hợp với bạn.</p>
+        </div>
+        <div class="chat-prompts" aria-label="Câu hỏi gợi ý">
+          @for (prompt of prompts; track prompt) {
+            <button type="button" (click)="send(prompt)">
+              {{ prompt }}
+              <span aria-hidden="true">↗</span>
+            </button>
+          }
+        </div>
+      </div>
+    } @else {
+      <div
+        #messageLog
+        class="chat-log"
+        role="log"
+        aria-label="Cuộc trò chuyện"
+        aria-live="polite"
+        aria-relevant="additions text"
+        [attr.aria-busy]="pending()"
+      >
+        @for (message of messages(); track message.id) {
+          @if (message.text || message.courses.length) {
+            <article class="chat-message" [class.chat-user]="message.role === 'user'">
+              <span class="chat-speaker">{{ message.role === 'user' ? 'Bạn' : '✦ Khoa' }}</span>
+              @if (message.text) {
+                <p>{{ message.text }}</p>
+              }
+              @for (course of message.courses; track course.slug) {
+                <div class="chat-course">
+                  <span class="chat-course-level">{{ course.level }}</span>
+                  <h3>{{ course.title }}</h3>
+                  <strong>{{ course.price | currency: 'VND' : 'symbol' : '1.0-0' }}</strong>
+                  <p>{{ course.reason }}</p>
+                  @if (course.available) {
+                    <div class="chat-course-actions">
+                      <a [routerLink]="['/courses', course.slug]">Xem khóa học ↗</a>
+                      @if (course.enrolled) {
+                        <a class="chat-primary-link" [routerLink]="['/learn', course.slug]">
+                          Vào học
+                        </a>
+                      } @else {
+                        <a class="chat-primary-link" [routerLink]="['/checkout', course.slug]">
+                          Đăng ký
+                        </a>
+                      }
+                    </div>
+                  } @else {
+                    <small>
+                      Thông tin từ danh mục tư vấn. Khóa học chưa mở đăng ký trên website.
+                    </small>
+                  }
+                </div>
+              }
+            </article>
+          }
+        }
+        @if (pending()) {
+          <p class="chat-status" role="status">{{ status() }}</p>
+        }
+      </div>
+    }
+    <div class="chat-composer-wrap">
+      @if (error()) {
+        <p class="chat-error" role="alert">{{ error() }}</p>
+      }
+      <form class="chat-composer" (ngSubmit)="send()">
+        <div class="chat-context">
+          <span class="chat-context-icon" aria-hidden="true">k</span>
+          Tư vấn từ danh mục khóa học Khoa
+        </div>
+        <label class="visually-hidden" for="chat-question">Câu hỏi tư vấn khóa học</label>
+        <textarea
+          #questionInput
+          id="chat-question"
+          name="question"
+          [(ngModel)]="question"
+          maxlength="2000"
+          rows="2"
+          placeholder="Hỏi về khóa học, lộ trình, học phí…"
+          [disabled]="pending()"
+          (keydown.enter)="onEnter($event)"
+        ></textarea>
+        <div class="chat-composer-actions">
+          <span>Chọn đúng khóa học, bắt đầu điều mới.</span>
+          <button type="submit" [disabled]="pending() || !question.trim()" aria-label="Gửi câu hỏi">
+            ↑
+          </button>
+        </div>
+      </form>
+      <p class="chat-footnote">Thông tin tham khảo. Xác nhận giá tại trang khóa học.</p>
+    </div>
+  </section>
+}
+@if (!open()) {
+  <button
+    #launcher
+    class="chat-launcher"
+    type="button"
+    (click)="toggle()"
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    aria-label="Mở tư vấn khóa học"
+  >
+    <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M12 0C13.5 7.5 16.5 10.5 24 12 16.5 13.5 13.5 16.5 12 24 10.5 16.5 7.5 13.5 0 12 7.5 10.5 10.5 7.5 12 0Z"
+      />
+    </svg>
+    <span>Tư vấn khóa học</span>
+  </button>
+}

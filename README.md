@@ -5,6 +5,7 @@ Hai project độc lập trong cùng repository:
 - **FE/**: Angular 22 — giao diện tiếng Việt, responsive.
 - **BE/**: Java 21 / Spring Boot 4 — giữ cấu trúc `core + modules` của Java hiện tại.
 - **Database**: MySQL 8.4, schema và dữ liệu mẫu được quản lý bằng Flyway.
+- **AI/**: Python / PyTorch — tư vấn khóa học, nhập danh mục Excel/CSV và mô hình Transformer nhỏ để nghiên cứu huấn luyện từ đầu. Hướng dẫn chạy, nhập dữ liệu và train tại [AI/README.md](AI/README.md).
 
 ## Tính năng
 
@@ -14,6 +15,7 @@ Hai project độc lập trong cùng repository:
 - Đăng ký khóa học qua **thanh toán demo**; tạo đơn hàng trong MySQL và mở quyền học, không thu tiền.
 - Góc học tập, trình xem video, chuyển bài, đánh dấu hoàn thành và lưu tiến độ theo tài khoản.
 - Kiểm tra quyền ở backend: cần đăng nhập và có đơn đăng ký đúng khóa học để lấy URL video bài học.
+- Icon tư vấn mở sidebar bên phải toàn chiều cao; gợi ý khóa học theo chủ đề, trình độ và ngân sách qua SSE, kèm nút xem/đăng ký/vào học.
 
 ## Chạy Docker riêng cho từng đội
 
@@ -78,6 +80,8 @@ npm.cmd start
 ```
 
 Mở http://localhost:4200. Angular proxy `/api` về backend nên cookie và CSRF hoạt động cùng origin.
+
+Để dùng chatbot khi chạy local, chạy thêm dịch vụ Python tại cổng `8000` theo [AI/README.md](AI/README.md). Docker Compose BE tự chạy dịch vụ này. Không cần API key của nhà cung cấp LLM bên ngoài.
 
 macOS/Linux: đặt `JAVA_HOME` tới JDK 21, dùng `./mvnw spring-boot:run`, `npm ci` và `npm start`.
 

@@ -42,3 +42,9 @@ FE/out-tsc/
 FE/.angular/
 .local/
 *.log
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+AI/.venv/
+AI/artifacts/
+AI/data/catalog.json

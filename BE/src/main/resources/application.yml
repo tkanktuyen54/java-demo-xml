@@ -31,6 +31,9 @@ server:
 
 app:
   demo-checkout-enabled: ${DEMO_CHECKOUT_ENABLED:false}
+  ai:
+    base-url: ${AI_SERVICE_URL:http://127.0.0.1:8000}
+    token: ${AI_SERVICE_TOKEN:}
 
 springdoc:
   api-docs:

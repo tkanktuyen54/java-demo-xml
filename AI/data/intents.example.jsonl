@@ -1,0 +1,76 @@
+{"question":"Tư vấn giúp mình chọn khóa học","intent":"recommend"}
+{"question":"Mình muốn học lập trình","intent":"recommend"}
+{"question":"Có khóa nào cho người mới không","intent":"recommend"}
+{"question":"Gợi ý khóa học dưới 500 nghìn","intent":"recommend"}
+{"question":"Mình đang tìm khóa học Python","intent":"recommend"}
+{"question":"Tôi muốn chuyển sang làm backend","intent":"recommend"}
+{"question":"Nên học Angular hay Java","intent":"recommend"}
+{"question":"Mình muốn học thiết kế giao diện","intent":"recommend"}
+{"question":"Tìm khóa học phù hợp ngân sách 1 triệu","intent":"recommend"}
+{"question":"Khóa nào dành cho người chưa biết code","intent":"recommend"}
+{"question":"Tư vấn khóa học marketing","intent":"recommend"}
+{"question":"Tôi cần cải thiện kỹ năng thiết kế","intent":"recommend"}
+{"question":"Có khóa lập trình cơ bản nào","intent":"recommend"}
+{"question":"Tôi muốn tự động hóa công việc","intent":"recommend"}
+{"question":"Gợi ý lộ trình học web cho người mới","intent":"recommend"}
+{"question":"Mình muốn tìm hiểu Figma","intent":"recommend"}
+{"question":"Khóa Angular giá bao nhiêu","intent":"price"}
+{"question":"Học phí khóa Java là bao nhiêu","intent":"price"}
+{"question":"Giá của khóa Python hiện tại","intent":"price"}
+{"question":"Khóa này bao nhiêu tiền","intent":"price"}
+{"question":"Cho tôi xem giá khóa thiết kế","intent":"price"}
+{"question":"Tôi muốn biết học phí khóa marketing","intent":"price"}
+{"question":"Giá hiện tại của khóa Figma","intent":"price"}
+{"question":"Học khóa Illustrator mất bao nhiêu tiền","intent":"price"}
+{"question":"Bao nhiêu tiền cho khóa lập trình này","intent":"price"}
+{"question":"Học phí của khóa học đang xem","intent":"price"}
+{"question":"Khóa Python có giá bao nhiêu","intent":"price"}
+{"question":"Cho mình hỏi giá của khóa học","intent":"price"}
+{"question":"Khóa Python học được gì","intent":"syllabus"}
+{"question":"Cho mình xem nội dung khóa Java","intent":"syllabus"}
+{"question":"Lộ trình khóa Angular thế nào","intent":"syllabus"}
+{"question":"Khóa này có những bài học gì","intent":"syllabus"}
+{"question":"Đầu ra của khóa thiết kế là gì","intent":"syllabus"}
+{"question":"Nội dung giảng dạy khóa Figma","intent":"syllabus"}
+{"question":"Tôi sẽ học được những kỹ năng gì","intent":"syllabus"}
+{"question":"Các mục tiêu đầu ra khóa marketing","intent":"syllabus"}
+{"question":"Cho tôi xem lộ trình học","intent":"syllabus"}
+{"question":"Khóa Java gồm những nội dung nào","intent":"syllabus"}
+{"question":"Sau khóa Python tôi làm được gì","intent":"syllabus"}
+{"question":"Mô tả nội dung khóa Illustrator","intent":"syllabus"}
+{"question":"Mở khóa học Python cho mình","intent":"open"}
+{"question":"Tôi muốn vào học khóa đã mua","intent":"open"}
+{"question":"Đăng ký khóa Angular","intent":"open"}
+{"question":"Mua khóa Java ở đâu","intent":"open"}
+{"question":"Cho mình vào học ngay","intent":"open"}
+{"question":"Mở trang khóa thiết kế","intent":"open"}
+{"question":"Tôi muốn bắt đầu học khóa Python","intent":"open"}
+{"question":"Làm sao đăng ký khóa này","intent":"open"}
+{"question":"Chuyển đến khóa Angular giúp tôi","intent":"open"}
+{"question":"Mình muốn mua khóa đang xem","intent":"open"}
+{"question":"Vào học khóa Java đã đăng ký","intent":"open"}
+{"question":"Mở khóa marketing để đăng ký","intent":"open"}
+{"question":"Khóa này có hoàn tiền không","intent":"policy"}
+{"question":"Có được cấp chứng chỉ không","intent":"policy"}
+{"question":"Bạn có cam kết việc làm không","intent":"policy"}
+{"question":"Chính sách hoàn tiền thế nào","intent":"policy"}
+{"question":"Khóa này có bảo hành không","intent":"policy"}
+{"question":"Có giảm giá cho sinh viên không","intent":"policy"}
+{"question":"Cho tôi xin mã ưu đãi","intent":"policy"}
+{"question":"Học xong có chứng nhận không","intent":"policy"}
+{"question":"Tôi muốn tìm hiểu chính sách hoàn học phí","intent":"policy"}
+{"question":"Có hỗ trợ giảm giá không","intent":"policy"}
+{"question":"Bạn cam kết thu nhập sau học không","intent":"policy"}
+{"question":"Điều kiện cấp chứng chỉ là gì","intent":"policy"}
+{"question":"Xin chào bạn","intent":"greeting"}
+{"question":"Chào trợ lý","intent":"greeting"}
+{"question":"Hello bạn","intent":"greeting"}
+{"question":"Chào bạn nhé","intent":"greeting"}
+{"question":"Chào buổi sáng","intent":"greeting"}
+{"question":"Hi bạn ơi","intent":"greeting"}
+{"question":"Xin chào Khoa","intent":"greeting"}
+{"question":"Chào bạn tôi cần giúp đỡ","intent":"greeting"}
+{"question":"Xin chào trợ lý Khoa","intent":"greeting"}
+{"question":"Hello","intent":"greeting"}
+{"question":"Chào Khoa","intent":"greeting"}
+{"question":"Hi trợ lý","intent":"greeting"}
