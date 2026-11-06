@@ -8,6 +8,8 @@ Module `modules/employee` tham khảo các luồng trong `C:\Delta\transport-erp
 
 Bản Java dùng kiến trúc hiện có `controller → service → repository`, JDBC và Flyway. Phạm vi gồm hồ sơ cá nhân, ngày làm việc, vị trí/phòng ban ban đầu, liên hệ, địa chỉ và liên hệ khẩn cấp; workflow duyệt một cấp trong một công ty. Bộ máy workflow nhiều cấp, tenant/đơn vị làm việc, Fuel, DMS, ngân hàng, bằng cấp, kỹ năng, người phụ thuộc, cấp tài khoản employee và nghiệp vụ nghỉ việc/tái tuyển của ERP chưa nằm trong module này. HTTP response và cách đánh phiên bản được thiết kế cho BE Java, không tương thích nguyên trạng với contract ERP.
 
+DTO đầu vào nằm trong `dto/request`, DTO đầu ra nằm trong `dto/response`, mỗi record một file. `EmployeeProfile` dùng chung cho input, output và snapshot. Các enum nghiệp vụ `EmployeeStatus`, `EmployeeRequestType`, `EmployeeRequestState` nằm trong `entity`. Việc tách DTO giữ nguyên các field JSON và endpoint; tên schema DTO trong OpenAPI theo tên lớp mới.
+
 ## Quyền và đăng nhập
 
 Tất cả endpoint yêu cầu đăng nhập bằng session hiện có. Các lệnh POST, PUT, DELETE yêu cầu CSRF: gọi `GET /api/auth/csrf`, gửi cookie và header `X-XSRF-TOKEN`. Lấy lại CSRF sau login/register/logout.
@@ -158,6 +160,14 @@ Gọi `POST /api/employee-creation-requests` với:
 Hồ sơ đầy đủ và snapshots lưu dưới dạng JSON có DTO typed; các cột tìm kiếm và bảng contact được cập nhật cùng transaction để phân trang và bảo vệ email unique. V5 thêm UUID, không sửa các migration V1–V4 đã áp dụng.
 
 ## Kiểm thử
+
+Để chạy một luồng có dữ liệu lưu thật trong database `khoa`, bật MySQL và backend local theo README, rồi chạy từ thư mục gốc:
+
+```sh
+node scripts/employee-demo.mjs http://127.0.0.1:8080
+```
+
+Script tạo hai tài khoản demo riêng (HR và HR_APPROVER), cấp quyền qua MySQL Docker và đăng nhập lại bằng cookie/CSRF thật. Luồng gồm tạo nháp, gửi duyệt, kiểm tra HR không được tự duyệt, người khác duyệt tạo nhân viên, sửa số điện thoại, gửi và duyệt cập nhật. Script kiểm tra hồ sơ chỉ đổi sau khi duyệt, UUID/mã nhân viên giữ nguyên, version tăng từ 1 lên 2 và audit ghi đúng người duyệt. Dữ liệu mẫu được giữ lại; mỗi lần chạy tạo một nhân viên và hai tài khoản mới. Kết quả, ID phiếu và thông tin đăng nhập demo lưu trong `BE/target/employee-demo-result.json` (ngoài Git).
 
 JDK 21, từ thư mục BE:
 

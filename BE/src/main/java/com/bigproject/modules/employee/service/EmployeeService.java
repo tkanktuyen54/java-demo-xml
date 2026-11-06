@@ -1,7 +1,9 @@
 package com.bigproject.modules.employee.service;
 
-import com.bigproject.modules.employee.dto.EmployeeDtos.*;
 import com.bigproject.modules.employee.dto.EmployeeProfile;
+import com.bigproject.modules.employee.dto.response.EmployeeDetailResponse;
+import com.bigproject.modules.employee.dto.response.EmployeeListItemResponse;
+import com.bigproject.modules.employee.dto.response.PageResponse;
 import com.bigproject.modules.employee.entity.Employee;
 import com.bigproject.modules.employee.repository.EmployeeRepository;
 import jakarta.validation.Validator;
@@ -26,7 +28,7 @@ public class EmployeeService {
     this.validator = validator;
   }
 
-  public Page<ListItem> list(
+  public PageResponse<EmployeeListItemResponse> list(
       int page,
       int size,
       String search,
@@ -49,9 +51,9 @@ public class EmployeeService {
         page, size, EmployeeQuery.search(search), status, department, sortBy, direction);
   }
 
-  public Detail detail(UUID publicId) {
+  public EmployeeDetailResponse detail(UUID publicId) {
     Employee employee = require(publicId, false);
-    return new Detail(
+    return new EmployeeDetailResponse(
         employee.publicId(),
         employee.employeeCode(),
         employee.status(),

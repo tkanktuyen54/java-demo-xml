@@ -1,8 +1,8 @@
 package com.bigproject.modules.employee.controller;
 
 import com.bigproject.core.security.CurrentUser;
-import com.bigproject.modules.employee.dto.EmployeeDtos.Page;
-import com.bigproject.modules.employee.dto.EmployeeRequestDtos.ListItem;
+import com.bigproject.modules.employee.dto.response.EmployeeRequestListItemResponse;
+import com.bigproject.modules.employee.dto.response.PageResponse;
 import com.bigproject.modules.employee.service.EmployeeRequestService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,7 +21,7 @@ public class EmployeeRequestListController {
 
   @GetMapping
   @Operation(summary = "List creation/update requests; drafts are private to their requester")
-  public Page<ListItem> list(
+  public PageResponse<EmployeeRequestListItemResponse> list(
       @AuthenticationPrincipal CurrentUser user,
       @RequestParam(defaultValue = "1") int page,
       @RequestParam(defaultValue = "20") int pageSize,

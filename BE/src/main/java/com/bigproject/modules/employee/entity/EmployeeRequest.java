@@ -1,15 +1,13 @@
 package com.bigproject.modules.employee.entity;
 
 import com.bigproject.modules.employee.dto.EmployeeProfile;
-import com.bigproject.modules.employee.dto.EmployeeRequestDtos.State;
-import com.bigproject.modules.employee.dto.EmployeeRequestDtos.Type;
 import java.time.Instant;
 
 /** Request persistence state, including the internal employee foreign key. */
 public record EmployeeRequest(
     long id,
-    Type type,
-    State state,
+    EmployeeRequestType type,
+    EmployeeRequestState state,
     Long subjectId,
     long requesterId,
     Long baselineVersion,

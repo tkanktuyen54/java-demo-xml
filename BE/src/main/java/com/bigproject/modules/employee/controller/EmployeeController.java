@@ -1,6 +1,8 @@
 package com.bigproject.modules.employee.controller;
 
-import com.bigproject.modules.employee.dto.EmployeeDtos.*;
+import com.bigproject.modules.employee.dto.response.EmployeeDetailResponse;
+import com.bigproject.modules.employee.dto.response.EmployeeListItemResponse;
+import com.bigproject.modules.employee.dto.response.PageResponse;
 import com.bigproject.modules.employee.service.EmployeeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,7 +21,7 @@ public class EmployeeController {
 
   @GetMapping
   @Operation(summary = "List approved employees with paging, search, filters and sorting")
-  public Page<ListItem> list(
+  public PageResponse<EmployeeListItemResponse> list(
       @RequestParam(defaultValue = "1") int page,
       @RequestParam(defaultValue = "20") int pageSize,
       @RequestParam(defaultValue = "") String search,
@@ -32,7 +34,7 @@ public class EmployeeController {
 
   @GetMapping("/{id}")
   @Operation(summary = "Read an approved employee profile")
-  public Detail detail(@PathVariable UUID id) {
+  public EmployeeDetailResponse detail(@PathVariable UUID id) {
     return employees.detail(id);
   }
 }

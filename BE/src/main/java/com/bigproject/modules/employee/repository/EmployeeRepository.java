@@ -1,10 +1,10 @@
 package com.bigproject.modules.employee.repository;
 
-import com.bigproject.modules.employee.dto.EmployeeDtos.ListItem;
-import com.bigproject.modules.employee.dto.EmployeeDtos.Page;
-import com.bigproject.modules.employee.dto.EmployeeDtos.Status;
 import com.bigproject.modules.employee.dto.EmployeeProfile;
+import com.bigproject.modules.employee.dto.response.EmployeeListItemResponse;
+import com.bigproject.modules.employee.dto.response.PageResponse;
 import com.bigproject.modules.employee.entity.Employee;
+import com.bigproject.modules.employee.entity.EmployeeStatus;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -50,7 +50,7 @@ public class EmployeeRepository {
     this.json = json;
   }
 
-  public Page<ListItem> list(
+  public PageResponse<EmployeeListItemResponse> list(
       int page,
       int size,
       String search,
@@ -78,7 +78,7 @@ public class EmployeeRepository {
                               .thenComparing(EmployeeProfile.Contact::type))
                       .findFirst()
                       .orElse(null);
-              return new ListItem(
+              return new EmployeeListItemResponse(
                   UUID.fromString(rs.getString("public_id")),
                   rs.getString("employee_code"),
                   rs.getString("full_name"),
@@ -87,11 +87,11 @@ public class EmployeeRepository {
                   rs.getString("position"),
                   contact == null ? null : contact.phoneNumber(),
                   contact == null ? null : contact.email(),
-                  Status.valueOf(rs.getString("status")),
+                  EmployeeStatus.valueOf(rs.getString("status")),
                   rs.getLong("version"));
             },
             values.toArray());
-    return Page.of(items, count, page, size);
+    return PageResponse.of(items, count, page, size);
   }
 
   public Optional<Employee> find(long id, boolean lock) {
@@ -119,7 +119,7 @@ public class EmployeeRepository {
         rs.getLong("id"),
         UUID.fromString(rs.getString("public_id")),
         rs.getString("employee_code"),
-        Status.valueOf(rs.getString("status")),
+        EmployeeStatus.valueOf(rs.getString("status")),
         json.read(rs.getString("profile_json")),
         rs.getLong("version"),
         rs.getTimestamp("created_at").toInstant(),

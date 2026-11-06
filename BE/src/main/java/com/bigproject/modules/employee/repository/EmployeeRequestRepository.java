@@ -1,9 +1,13 @@
 package com.bigproject.modules.employee.repository;
 
-import com.bigproject.modules.employee.dto.EmployeeDtos.Page;
 import com.bigproject.modules.employee.dto.EmployeeProfile;
-import com.bigproject.modules.employee.dto.EmployeeRequestDtos.*;
+import com.bigproject.modules.employee.dto.response.EmployeeActivityResponse;
+import com.bigproject.modules.employee.dto.response.EmployeeRequestListItemResponse;
+import com.bigproject.modules.employee.dto.response.EmployeeRevisionResponse;
+import com.bigproject.modules.employee.dto.response.PageResponse;
 import com.bigproject.modules.employee.entity.EmployeeRequest;
+import com.bigproject.modules.employee.entity.EmployeeRequestState;
+import com.bigproject.modules.employee.entity.EmployeeRequestType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -28,7 +32,7 @@ public class EmployeeRequestRepository {
   }
 
   public long create(
-      Type type,
+      EmployeeRequestType type,
       Long subjectId,
       long requesterId,
       Long baselineVersion,
@@ -123,14 +127,14 @@ public class EmployeeRequestRepository {
     return Objects.requireNonNull(keys.getKey()).longValue();
   }
 
-  public List<Revision> revisions(long requestId) {
+  public List<EmployeeRevisionResponse> revisions(long requestId) {
     return jdbc.query(
         "SELECT * FROM employee_request_revision WHERE request_id = ? ORDER BY revision_number",
         this::revision,
         requestId);
   }
 
-  public Optional<Revision> revision(long requestId, long revisionId) {
+  public Optional<EmployeeRevisionResponse> revision(long requestId, long revisionId) {
     return jdbc
         .query(
             "SELECT * FROM employee_request_revision WHERE request_id = ? AND id = ?",
@@ -141,7 +145,7 @@ public class EmployeeRequestRepository {
         .findFirst();
   }
 
-  public Page<ListItem> list(
+  public PageResponse<EmployeeRequestListItemResponse> list(
       int page,
       int size,
       long actorId,
@@ -169,10 +173,10 @@ public class EmployeeRequestRepository {
                 + from
                 + " ORDER BY r.id DESC LIMIT ? OFFSET ?",
             (rs, row) ->
-                new ListItem(
+                new EmployeeRequestListItemResponse(
                     rs.getLong("id"),
-                    Type.valueOf(rs.getString("type")),
-                    State.valueOf(rs.getString("state")),
+                    EmployeeRequestType.valueOf(rs.getString("type")),
+                    EmployeeRequestState.valueOf(rs.getString("state")),
                     rs.getString("subject_public_id") == null
                         ? null
                         : UUID.fromString(rs.getString("subject_public_id")),
@@ -184,7 +188,7 @@ public class EmployeeRequestRepository {
                     rs.getTimestamp("created_at").toInstant(),
                     rs.getTimestamp("last_modified_at").toInstant()),
             values.toArray());
-    return Page.of(items, count, page, size);
+    return PageResponse.of(items, count, page, size);
   }
 
   public void audit(
@@ -202,7 +206,7 @@ public class EmployeeRequestRepository {
         Timestamp.from(now));
   }
 
-  public Page<Activity> activities(long requestId, int page, int size) {
+  public PageResponse<EmployeeActivityResponse> activities(long requestId, int page, int size) {
     long count =
         jdbc.queryForObject(
             "SELECT COUNT(*) FROM employee_request_activity WHERE request_id = ?",
@@ -214,7 +218,7 @@ public class EmployeeRequestRepository {
         SELECT * FROM employee_request_activity WHERE request_id = ? ORDER BY id DESC LIMIT ? OFFSET ?
         """,
             (rs, row) ->
-                new Activity(
+                new EmployeeActivityResponse(
                     rs.getLong("id"),
                     rs.getLong("request_id"),
                     rs.getObject("revision_id", Long.class),
@@ -225,7 +229,7 @@ public class EmployeeRequestRepository {
             requestId,
             size,
             ((long) page - 1) * size);
-    return Page.of(items, count, page, size);
+    return PageResponse.of(items, count, page, size);
   }
 
   public void delete(long id, Instant now) {
@@ -238,8 +242,8 @@ public class EmployeeRequestRepository {
   private EmployeeRequest detail(ResultSet rs, int row) throws SQLException {
     return new EmployeeRequest(
         rs.getLong("id"),
-        Type.valueOf(rs.getString("type")),
-        State.valueOf(rs.getString("state")),
+        EmployeeRequestType.valueOf(rs.getString("type")),
+        EmployeeRequestState.valueOf(rs.getString("state")),
         rs.getObject("subject_id", Long.class),
         rs.getLong("requester_id"),
         rs.getObject("baseline_version", Long.class),
@@ -253,8 +257,8 @@ public class EmployeeRequestRepository {
         rs.getTimestamp("last_modified_at").toInstant());
   }
 
-  private Revision revision(ResultSet rs, int row) throws SQLException {
-    return new Revision(
+  private EmployeeRevisionResponse revision(ResultSet rs, int row) throws SQLException {
+    return new EmployeeRevisionResponse(
         rs.getLong("id"),
         rs.getLong("request_id"),
         rs.getInt("revision_number"),
