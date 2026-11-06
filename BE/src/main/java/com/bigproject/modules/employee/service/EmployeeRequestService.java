@@ -3,6 +3,7 @@ package com.bigproject.modules.employee.service;
 import com.bigproject.modules.employee.dto.EmployeeDtos.Page;
 import com.bigproject.modules.employee.dto.EmployeeProfile;
 import com.bigproject.modules.employee.dto.EmployeeRequestDtos.*;
+import com.bigproject.modules.employee.entity.EmployeeRequest;
 import com.bigproject.modules.employee.repository.EmployeeRepository;
 import com.bigproject.modules.employee.repository.EmployeeRequestRepository;
 import java.time.Clock;
@@ -54,24 +55,25 @@ public class EmployeeRequestService {
   }
 
   public Detail detail(Type type, long id, long actorId) {
-    return read(type, id, actorId, false);
+    return publicDetail(read(type, id, actorId, false));
   }
 
   @Transactional
   public Detail create(Type type, CreateDraft body, long actorId) {
-    Long subjectId = body.subjectId();
+    Long subjectId = null;
     EmployeeProfile baseline = null;
     Long baselineVersion = null;
     EmployeeProfile target = body.target();
     if (type == Type.Creation) {
-      if (subjectId != null) {
+      if (body.subjectId() != null) {
         throw error(HttpStatus.BAD_REQUEST, "creation_subject_id_must_be_absent");
       }
     } else {
-      if (subjectId == null) {
+      if (body.subjectId() == null) {
         throw error(HttpStatus.BAD_REQUEST, "employee_subject_id_required");
       }
-      var employee = profiles.require(subjectId, true);
+      var employee = profiles.require(body.subjectId(), true);
+      subjectId = employee.id();
       baseline = employee.profile();
       baselineVersion = employee.version();
       if (target == null) {
@@ -82,7 +84,7 @@ public class EmployeeRequestService {
         requests.create(
             type, subjectId, actorId, baselineVersion, baseline, target, clock.instant());
     requests.audit(id, null, "DraftCreated", actorId, null, clock.instant());
-    return read(type, id, actorId, false);
+    return publicDetail(read(type, id, actorId, false));
   }
 
   @Transactional
@@ -93,7 +95,7 @@ public class EmployeeRequestService {
 
   @Transactional
   public Detail replace(Type type, long id, ReplaceDraft body, long actorId) {
-    Detail request = owned(type, id, actorId, body.version());
+    EmployeeRequest request = owned(type, id, actorId, body.version());
     state(request, EDITABLE);
     if (type == Type.Update && body.target() == null) {
       throw error(HttpStatus.BAD_REQUEST, "employee_target_required");
@@ -113,7 +115,7 @@ public class EmployeeRequestService {
 
   @Transactional
   public Detail submit(Type type, long id, Submit body, long actorId) {
-    Detail request = owned(type, id, actorId, body.version());
+    EmployeeRequest request = owned(type, id, actorId, body.version());
     state(request, EDITABLE);
     EmployeeProfile target = body.target() == null ? request.target() : body.target();
     String reason = reason(body.reason());
@@ -136,7 +138,7 @@ public class EmployeeRequestService {
 
   @Transactional
   public Detail revoke(Type type, long id, Action body, long actorId) {
-    Detail request = owned(type, id, actorId, body.version());
+    EmployeeRequest request = owned(type, id, actorId, body.version());
     state(request, Set.of(State.PendingApproval));
     return save(
         request,
@@ -153,7 +155,7 @@ public class EmployeeRequestService {
 
   @Transactional
   public Detail cancel(Type type, long id, Action body, long actorId) {
-    Detail request = owned(type, id, actorId, body.version());
+    EmployeeRequest request = owned(type, id, actorId, body.version());
     state(request, Set.of(State.PendingApproval, State.Rejected, State.Revoked));
     return save(
         request,
@@ -170,7 +172,7 @@ public class EmployeeRequestService {
 
   @Transactional
   public Detail decide(Type type, long id, Decision body, long actorId, boolean approve) {
-    Detail request = read(type, id, actorId, true);
+    EmployeeRequest request = read(type, id, actorId, true);
     version(request, body.version());
     state(request, Set.of(State.PendingApproval));
     if (request.requesterId() == actorId) {
@@ -211,7 +213,7 @@ public class EmployeeRequestService {
 
   @Transactional
   public void delete(Type type, long id, long version, long actorId) {
-    Detail request = owned(type, id, actorId, version);
+    EmployeeRequest request = owned(type, id, actorId, version);
     state(request, Set.of(State.Draft, State.Rejected, State.Revoked, State.Cancelled));
     requests.audit(id, request.latestRevisionId(), "Deleted", actorId, null, clock.instant());
     requests.delete(id, clock.instant());
@@ -235,8 +237,8 @@ public class EmployeeRequestService {
     return requests.activities(id, page, size);
   }
 
-  private Detail read(Type type, long id, long actorId, boolean lock) {
-    Detail request =
+  private EmployeeRequest read(Type type, long id, long actorId, boolean lock) {
+    EmployeeRequest request =
         requests
             .find(id, lock)
             .orElseThrow(() -> error(HttpStatus.NOT_FOUND, "employee_request_not_found"));
@@ -247,8 +249,8 @@ public class EmployeeRequestService {
     return request;
   }
 
-  private Detail owned(Type type, long id, long actorId, long expectedVersion) {
-    Detail request = read(type, id, actorId, true);
+  private EmployeeRequest owned(Type type, long id, long actorId, long expectedVersion) {
+    EmployeeRequest request = read(type, id, actorId, true);
     if (request.requesterId() != actorId) {
       throw error(HttpStatus.FORBIDDEN, "employee_request_owner_required");
     }
@@ -256,7 +258,7 @@ public class EmployeeRequestService {
     return request;
   }
 
-  private void checkBaseline(Detail request) {
+  private void checkBaseline(EmployeeRequest request) {
     if (request.type() == Type.Update) {
       var employee = profiles.require(request.subjectId(), true);
       if (!Objects.equals(request.baselineVersion(), employee.version())) {
@@ -266,7 +268,7 @@ public class EmployeeRequestService {
   }
 
   private Detail save(
-      Detail previous,
+      EmployeeRequest previous,
       State state,
       Long subjectId,
       EmployeeProfile target,
@@ -276,8 +278,8 @@ public class EmployeeRequestService {
       String action,
       long actorId,
       String comment) {
-    Detail next =
-        new Detail(
+    EmployeeRequest next =
+        new EmployeeRequest(
             previous.id(),
             previous.type(),
             state,
@@ -294,16 +296,24 @@ public class EmployeeRequestService {
             clock.instant());
     requests.save(next);
     requests.audit(next.id(), revisionId, action, actorId, comment, clock.instant());
-    return next;
+    return publicDetail(next);
   }
 
-  private static void version(Detail request, long version) {
+  private Detail publicDetail(EmployeeRequest request) {
+    var subjectId = request.subjectId() == null ? null : profiles.require(request.subjectId(), false).publicId();
+    return new Detail(request.id(), request.type(), request.state(), subjectId, request.requesterId(),
+        request.baselineVersion(), request.baseline(), request.target(), request.version(),
+        request.revisionNumber(), request.latestRevisionId(), request.reason(),
+        request.createdAtUtc(), request.lastModifiedAtUtc());
+  }
+
+  private static void version(EmployeeRequest request, long version) {
     if (request.version() != version) {
       throw error(HttpStatus.CONFLICT, "employee_request_version_conflict");
     }
   }
 
-  private static void state(Detail request, Set<State> allowed) {
+  private static void state(EmployeeRequest request, Set<State> allowed) {
     if (!allowed.contains(request.state())) {
       throw error(HttpStatus.CONFLICT, "employee_request_action_not_allowed");
     }

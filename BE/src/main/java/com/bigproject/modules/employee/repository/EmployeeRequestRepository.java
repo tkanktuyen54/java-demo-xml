@@ -3,6 +3,7 @@ package com.bigproject.modules.employee.repository;
 import com.bigproject.modules.employee.dto.EmployeeDtos.Page;
 import com.bigproject.modules.employee.dto.EmployeeProfile;
 import com.bigproject.modules.employee.dto.EmployeeRequestDtos.*;
+import com.bigproject.modules.employee.entity.EmployeeRequest;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,6 +12,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
@@ -59,7 +61,7 @@ public class EmployeeRequestRepository {
     return Objects.requireNonNull(keys.getKey()).longValue();
   }
 
-  public Optional<Detail> find(long id, boolean lock) {
+  public Optional<EmployeeRequest> find(long id, boolean lock) {
     return jdbc
         .query(
             "SELECT * FROM employee_request WHERE id = ? AND deleted = FALSE"
@@ -70,7 +72,7 @@ public class EmployeeRequestRepository {
         .findFirst();
   }
 
-  public void save(Detail next) {
+  public void save(EmployeeRequest next) {
     int changed =
         jdbc.update(
             """
@@ -95,7 +97,7 @@ public class EmployeeRequestRepository {
     }
   }
 
-  public long freeze(Detail request, EmployeeProfile target, String reason, Instant now) {
+  public long freeze(EmployeeRequest request, EmployeeProfile target, String reason, Instant now) {
     GeneratedKeyHolder keys = new GeneratedKeyHolder();
     jdbc.update(
         connection -> {
@@ -163,13 +165,13 @@ public class EmployeeRequestRepository {
     values.add(((long) page - 1) * size);
     var items =
         jdbc.query(
-            "SELECT r.*, e.employee_code " + from + " ORDER BY r.id DESC LIMIT ? OFFSET ?",
+            "SELECT r.*, e.employee_code, e.public_id AS subject_public_id " + from + " ORDER BY r.id DESC LIMIT ? OFFSET ?",
             (rs, row) ->
                 new ListItem(
                     rs.getLong("id"),
                     Type.valueOf(rs.getString("type")),
                     State.valueOf(rs.getString("state")),
-                    rs.getObject("subject_id", Long.class),
+                    rs.getString("subject_public_id") == null ? null : UUID.fromString(rs.getString("subject_public_id")),
                     rs.getString("employee_code"),
                     rs.getString("target_name"),
                     rs.getLong("requester_id"),
@@ -229,8 +231,8 @@ public class EmployeeRequestRepository {
         id);
   }
 
-  private Detail detail(ResultSet rs, int row) throws SQLException {
-    return new Detail(
+  private EmployeeRequest detail(ResultSet rs, int row) throws SQLException {
+    return new EmployeeRequest(
         rs.getLong("id"),
         Type.valueOf(rs.getString("type")),
         State.valueOf(rs.getString("state")),

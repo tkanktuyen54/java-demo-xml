@@ -2,6 +2,7 @@ package com.bigproject.modules.employee.dto;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 public final class EmployeeDtos {
   private EmployeeDtos() {}
@@ -13,7 +14,7 @@ public final class EmployeeDtos {
   }
 
   public record Detail(
-      long id,
+      UUID id,
       String employeeCode,
       Status status,
       EmployeeProfile profile,
@@ -22,7 +23,7 @@ public final class EmployeeDtos {
       Instant lastModifiedAtUtc) {}
 
   public record ListItem(
-      long id,
+      UUID id,
       String employeeCode,
       String fullName,
       String avatarUrl,

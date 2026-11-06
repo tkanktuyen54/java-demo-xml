@@ -4,6 +4,7 @@ import com.bigproject.modules.employee.dto.EmployeeDtos.*;
 import com.bigproject.modules.employee.service.EmployeeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.UUID;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -31,7 +32,7 @@ public class EmployeeController {
 
   @GetMapping("/{id}")
   @Operation(summary = "Read an approved employee profile")
-  public Detail detail(@PathVariable long id) {
-    return employees.require(id, false);
+  public Detail detail(@PathVariable UUID id) {
+    return employees.detail(id);
   }
 }

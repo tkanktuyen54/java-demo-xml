@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
+import java.util.UUID;
 
 public final class EmployeeRequestDtos {
   private EmployeeRequestDtos() {}
@@ -24,10 +25,10 @@ public final class EmployeeRequestDtos {
     Cancelled
   }
 
-  public record CreateDraft(@Positive Long subjectId, @Valid EmployeeProfile target) {}
+  public record CreateDraft(UUID subjectId, @Valid EmployeeProfile target) {}
 
   public record Submission(
-      @Positive Long subjectId,
+      UUID subjectId,
       @NotNull @Valid EmployeeProfile target,
       @NotBlank @Size(max = 2000) String reason) {}
 
@@ -49,7 +50,7 @@ public final class EmployeeRequestDtos {
       long id,
       Type type,
       State state,
-      Long subjectId,
+      UUID subjectId,
       long requesterId,
       Long baselineVersion,
       EmployeeProfile baseline,
@@ -65,7 +66,7 @@ public final class EmployeeRequestDtos {
       long id,
       Type type,
       State state,
-      Long subjectId,
+      UUID subjectId,
       String employeeCode,
       String fullName,
       long requesterId,

@@ -2,12 +2,14 @@ package com.bigproject.modules.employee.service;
 
 import com.bigproject.modules.employee.dto.EmployeeDtos.*;
 import com.bigproject.modules.employee.dto.EmployeeProfile;
+import com.bigproject.modules.employee.entity.Employee;
 import com.bigproject.modules.employee.repository.EmployeeRepository;
 import jakarta.validation.Validator;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +49,18 @@ public class EmployeeService {
         page, size, EmployeeQuery.search(search), status, department, sortBy, direction);
   }
 
-  public Detail require(long id, boolean lock) {
+  public Detail detail(UUID publicId) {
+    Employee employee = require(publicId, false);
+    return new Detail(employee.publicId(), employee.employeeCode(), employee.status(),
+        employee.profile(), employee.version(), employee.createdAtUtc(), employee.lastModifiedAtUtc());
+  }
+
+  public Employee require(UUID publicId, boolean lock) {
+    return employees.findByPublicId(publicId, lock)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "employee_not_found"));
+  }
+
+  public Employee require(long id, boolean lock) {
     return employees
         .find(id, lock)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "employee_not_found"));

@@ -1,16 +1,19 @@
 package com.bigproject.modules.employee.repository;
 
-import com.bigproject.modules.employee.dto.EmployeeDtos.Detail;
 import com.bigproject.modules.employee.dto.EmployeeDtos.ListItem;
 import com.bigproject.modules.employee.dto.EmployeeDtos.Page;
 import com.bigproject.modules.employee.dto.EmployeeDtos.Status;
 import com.bigproject.modules.employee.dto.EmployeeProfile;
+import com.bigproject.modules.employee.entity.Employee;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
@@ -76,7 +79,7 @@ public class EmployeeRepository {
                       .findFirst()
                       .orElse(null);
               return new ListItem(
-                  rs.getLong("id"),
+                  UUID.fromString(rs.getString("public_id")),
                   rs.getString("employee_code"),
                   rs.getString("full_name"),
                   profile.avatar(),
@@ -91,24 +94,29 @@ public class EmployeeRepository {
     return Page.of(items, count, page, size);
   }
 
-  public Optional<Detail> find(long id, boolean lock) {
+  public Optional<Employee> find(long id, boolean lock) {
     return jdbc
         .query(
             "SELECT * FROM employee WHERE id = ?" + (lock ? " FOR UPDATE" : ""),
-            (rs, row) ->
-                new Detail(
-                    rs.getLong("id"),
-                    rs.getString("employee_code"),
-                    Status.valueOf(rs.getString("status")),
-                    json.read(rs.getString("profile_json")),
-                    rs.getLong("version"),
-                    rs.getTimestamp("created_at").toInstant(),
-                    rs.getTimestamp("last_modified_at") == null
-                        ? null
-                        : rs.getTimestamp("last_modified_at").toInstant()),
+            this::mapEmployee,
             id)
         .stream()
         .findFirst();
+  }
+
+  public Optional<Employee> findByPublicId(UUID publicId, boolean lock) {
+    return jdbc.query(
+        "SELECT * FROM employee WHERE public_id = ?" + (lock ? " FOR UPDATE" : ""),
+        this::mapEmployee, publicId.toString()).stream().findFirst();
+  }
+
+  private Employee mapEmployee(ResultSet rs, int row) throws SQLException {
+    return new Employee(
+        rs.getLong("id"), UUID.fromString(rs.getString("public_id")),
+        rs.getString("employee_code"), Status.valueOf(rs.getString("status")),
+        json.read(rs.getString("profile_json")), rs.getLong("version"),
+        rs.getTimestamp("created_at").toInstant(),
+        rs.getTimestamp("last_modified_at") == null ? null : rs.getTimestamp("last_modified_at").toInstant());
   }
 
   public long create(EmployeeProfile profile, Instant now) {
@@ -118,15 +126,16 @@ public class EmployeeRepository {
           PreparedStatement statement =
               connection.prepareStatement(
                   """
-          INSERT INTO employee(full_name, department, position, profile_json, created_at)
-          VALUES (?, ?, ?, ?, ?)
+          INSERT INTO employee(public_id, full_name, department, position, profile_json, created_at)
+          VALUES (?, ?, ?, ?, ?, ?)
           """,
                   new String[] {"id"});
-          statement.setString(1, profile.fullName());
-          statement.setString(2, profile.assignment().department());
-          statement.setString(3, profile.assignment().position());
-          statement.setString(4, json.write(profile));
-          statement.setTimestamp(5, Timestamp.from(now));
+          statement.setString(1, UUID.randomUUID().toString());
+          statement.setString(2, profile.fullName());
+          statement.setString(3, profile.assignment().department());
+          statement.setString(4, profile.assignment().position());
+          statement.setString(5, json.write(profile));
+          statement.setTimestamp(6, Timestamp.from(now));
           return statement;
         },
         keys);
