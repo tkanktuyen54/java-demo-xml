@@ -86,6 +86,8 @@ Flyway tự tạo schema và dữ liệu khóa học mẫu khi khởi động. M
 
 ## API
 
+API nhân viên và phiếu tạo/sửa qua duyệt: xem [Employee API](docs/employees.md), gồm payload mẫu, endpoint, phân quyền HR/HR_APPROVER và quy trình kiểm thử.
+
 | Method | Endpoint | Quyền |
 | --- | --- | --- |
 | GET | `/api/courses?q=&category=` | Công khai |

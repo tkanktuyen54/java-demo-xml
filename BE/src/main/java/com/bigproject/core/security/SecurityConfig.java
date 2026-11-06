@@ -70,6 +70,30 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/api/tbl-user", "/api/tbl-address", "/api/table-address")
                     .hasRole("ADMIN")
+                    .requestMatchers(
+                        HttpMethod.POST,
+                        "/api/employee-creation-requests/*/approve",
+                        "/api/employee-creation-requests/*/reject",
+                        "/api/employee-update-requests/*/approve",
+                        "/api/employee-update-requests/*/reject")
+                    .hasAnyRole("HR_APPROVER", "ADMIN")
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/employees",
+                        "/api/employees/**",
+                        "/api/employee-requests",
+                        "/api/employee-requests/**",
+                        "/api/employee-creation-requests",
+                        "/api/employee-creation-requests/**",
+                        "/api/employee-update-requests",
+                        "/api/employee-update-requests/**")
+                    .hasAnyRole("HR", "HR_APPROVER", "ADMIN")
+                    .requestMatchers(
+                        "/api/employees", "/api/employees/**",
+                        "/api/employee-requests", "/api/employee-requests/**",
+                        "/api/employee-creation-requests", "/api/employee-creation-requests/**",
+                        "/api/employee-update-requests", "/api/employee-update-requests/**")
+                    .hasAnyRole("HR", "ADMIN")
                     .anyRequest()
                     .authenticated())
         .exceptionHandling(

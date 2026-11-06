@@ -5,6 +5,8 @@ import com.bigproject.modules.auth.dto.RegisterRequest;
 import com.bigproject.modules.user.entity.Account;
 import com.bigproject.modules.user.repository.UserRepository;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -69,6 +71,12 @@ public class AuthService {
             () ->
                 new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED, "Phiên đăng nhập đã hết hạn."));
+  }
+
+  public List<String> roles(long userId) {
+    var roles = new ArrayList<>(users.findRoles(userId));
+    roles.add("STUDENT");
+    return roles;
   }
 
   private static String normalize(String email) {

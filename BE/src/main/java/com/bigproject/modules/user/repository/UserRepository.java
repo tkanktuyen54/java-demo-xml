@@ -28,6 +28,11 @@ public class UserRepository {
     return jdbc.queryForList("SELECT * FROM tbl_address ORDER BY id");
   }
 
+  public List<String> findRoles(long userId) {
+    return jdbc.queryForList(
+        "SELECT role FROM account_role WHERE user_id = ? ORDER BY role", String.class, userId);
+  }
+
   public Optional<Account> findByEmail(String email) {
     return jdbc
         .query(

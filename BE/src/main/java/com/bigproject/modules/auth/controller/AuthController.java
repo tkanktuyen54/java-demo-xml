@@ -7,7 +7,6 @@ import com.bigproject.modules.user.entity.Account;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -68,7 +67,9 @@ public class AuthController {
         UsernamePasswordAuthenticationToken.authenticated(
             new CurrentUser(account.id(), account.email()),
             null,
-            List.of(new SimpleGrantedAuthority("ROLE_STUDENT")));
+            auth.roles(account.id()).stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                .toList());
     sessions.onAuthentication(authentication, request, response);
     var context = SecurityContextHolder.createEmptyContext();
     context.setAuthentication(authentication);
