@@ -43,6 +43,31 @@ Base URL khi chạy local: `http://localhost:8080`; Docker BE: `http://localhost
 | GET | `/api/employees/{id}` | `{id, employeeCode, status, profile, version, createdAtUtc, lastModifiedAtUtc}` |
 | GET | `/api/employee-requests` | Trang phiếu tạo/sửa |
 
+ID employee trên API là **UUID**. Field `id` trong employee list/detail và `subjectId` trong input/output của phiếu tạo/sửa đều dùng cùng UUID, ví dụ `550e8400-e29b-41d4-a716-446655440000`. ID của phiếu, revision và tài khoản vẫn là số.
+
+```text
+GET /api/employees/550e8400-e29b-41d4-a716-446655440000
+```
+
+Ví dụ mở phiếu sửa:
+
+```json
+{
+  "subjectId": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+`subjectId` lấy từ employee list/detail hoặc response phiếu đã duyệt. API không nhận employee ID số cũ: UUID sai định dạng trả 400, UUID hợp lệ nhưng không tồn tại trả 404. Client cần chuyển sang dùng UUID cho employee URL và `subjectId`.
+
+Database vẫn giữ `employee.id` BIGINT làm khóa chính và khóa ngoại. UUID nằm trong `employee.public_id` CHAR(36), NOT NULL và UNIQUE; BE sinh bằng `UUID.randomUUID()` khi duyệt tạo employee. Client không tự cấp UUID. Migration V5 cấp UUID cho employee đã có, giữ nguyên mã employee, profile, version, khóa ngoại và lịch sử phiếu. Update hồ sơ giữ nguyên UUID.
+
+Khởi động lại BE để Flyway áp dụng V5, không cần tạo lại database. Kiểm tra bằng:
+
+```sql
+SELECT id AS internal_id, public_id, employee_code, full_name
+FROM employee;
+```
+
 List employee nhận `page=1`, `pageSize=20` (1–100), `search`, `status`, `department`, `sortBy=employeeCode`, `sortDirection=asc`. Search từ 2–200 ký tự, hoặc rỗng; tìm tên, mã, email và điện thoại, không diễn giải `%`/`_` thành wildcard. `status`: Active/Suspended/Terminated. Các sort: employeeCode, fullName, department, position, status, createdAtUtc; hướng asc/desc. List chỉ trả thông tin tóm tắt, không trả dữ liệu định danh cá nhân.
 
 List phiếu nhận `page`, `pageSize`, `search` theo tên/mã employee, `type=Creation|Update`, `state` và `includeCompleted=false`. Mặc định loại phiếu Approved; dùng `includeCompleted=true` để xem cả phiếu đã duyệt. Trang trả `{items, totalCount, page, pageSize, totalPages}`; lọc, đếm và phân trang trong database.
@@ -130,7 +155,7 @@ Gọi `POST /api/employee-creation-requests` với:
 - GET không tạo nháp hay thay đổi dữ liệu. Xóa mềm giữ chứng cứ; API thường trả 404 cho phiếu đã xóa.
 - Lỗi: 400 dữ liệu/query không hợp lệ, 401 chưa đăng nhập, 403 thiếu quyền/khác người lập/tự duyệt, 404 không tìm thấy hoặc nháp của người khác, 409 sai version/trạng thái/revision/email trùng/hồ sơ đã đổi. Lỗi nghiệp vụ dùng `{message: "error_code"}`.
 
-Hồ sơ đầy đủ và snapshots lưu dưới dạng JSON có DTO typed; các cột tìm kiếm và bảng contact được cập nhật cùng transaction để phân trang và bảo vệ email unique. Không sửa các migration V1–V3 đã áp dụng.
+Hồ sơ đầy đủ và snapshots lưu dưới dạng JSON có DTO typed; các cột tìm kiếm và bảng contact được cập nhật cùng transaction để phân trang và bảo vệ email unique. V5 thêm UUID, không sửa các migration V1–V4 đã áp dụng.
 
 ## Kiểm thử
 
@@ -142,4 +167,4 @@ JDK 21, từ thư mục BE:
 .\mvnw.cmd test
 ```
 
-`EmployeeIntegrationTests` kiểm tra bằng đăng nhập/session thật: tạo/sửa qua duyệt, privacy, phân quyền/CSRF, trả và nộp lại, revision, thu hồi/hủy/xóa mềm, rollback, email unique, baseline stale, tìm kiếm/phân trang, OpenAPI và hai lệnh duyệt đồng thời. Mặc định test chạy H2 MySQL mode; có thể override datasource bằng system properties để chạy cùng bộ test trên database MySQL riêng.
+`EmployeeIntegrationTests` kiểm tra bằng đăng nhập/session thật: tạo/sửa qua duyệt, privacy, phân quyền/CSRF, trả và nộp lại, revision, thu hồi/hủy/xóa mềm, rollback, email unique, baseline stale, tìm kiếm/phân trang, OpenAPI và hai lệnh duyệt đồng thời. Các luồng dùng UUID, kiểm tra ID nhất quán giữa employee/phiếu và giữ quan hệ BIGINT nội bộ. `EmployeeUuidMigrationTests` kiểm tra nâng schema V4 có dữ liệu lên V5, giữ nguyên profile/version/khóa ngoại/audit, UUID không thay đổi khi chạy lại và ràng buộc NOT NULL/UNIQUE. Mặc định test chạy H2 MySQL mode; có thể override datasource bằng system properties để chạy bộ test API trên database MySQL riêng.
