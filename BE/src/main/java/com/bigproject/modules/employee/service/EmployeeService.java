@@ -51,12 +51,19 @@ public class EmployeeService {
 
   public Detail detail(UUID publicId) {
     Employee employee = require(publicId, false);
-    return new Detail(employee.publicId(), employee.employeeCode(), employee.status(),
-        employee.profile(), employee.version(), employee.createdAtUtc(), employee.lastModifiedAtUtc());
+    return new Detail(
+        employee.publicId(),
+        employee.employeeCode(),
+        employee.status(),
+        employee.profile(),
+        employee.version(),
+        employee.createdAtUtc(),
+        employee.lastModifiedAtUtc());
   }
 
   public Employee require(UUID publicId, boolean lock) {
-    return employees.findByPublicId(publicId, lock)
+    return employees
+        .findByPublicId(publicId, lock)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "employee_not_found"));
   }
 

@@ -78,8 +78,10 @@ class EmployeeIntegrationTests {
     assertEmployees(name, 0);
     mvc.perform(get(CREATE + "/" + id).session(reviewer.session())).andExpect(status().isOk());
     JsonNode approved = approve(CREATE, pending);
-    long employeeId = approved.get("subjectId").asLong();
+    String employeeId = approved.get("subjectId").asText();
+    assertThat(UUID.fromString(employeeId).version()).isEqualTo(4);
     mvc.perform(get("/api/employees/" + employeeId).session(maker.session()))
+        .andExpect(jsonPath("$.id").value(employeeId))
         .andExpect(jsonPath("$.profile.fullName").value(name))
         .andExpect(jsonPath("$.profile.contacts[0].isPrimary").value(true))
         .andExpect(jsonPath("$.employeeCode").isNotEmpty())
@@ -95,7 +97,8 @@ class EmployeeIntegrationTests {
                 .param("includeCompleted", "true")
                 .param("type", "Creation")
                 .param("state", "Approved"))
-        .andExpect(jsonPath("$.totalCount").value(1));
+        .andExpect(jsonPath("$.totalCount").value(1))
+        .andExpect(jsonPath("$.items[0].subjectId").value(employeeId));
     postJson(CREATE + "/" + id + "/approve", reviewer, decision(approved))
         .andExpect(status().isConflict());
   }
@@ -104,11 +107,12 @@ class EmployeeIntegrationTests {
   void updateCopiesBaselineAndAppliesFullReplacementAfterApproval() throws Exception {
     JsonNode created =
         approve(CREATE, submission(CREATE, profile("Original " + UUID.randomUUID())));
-    long employeeId = created.get("subjectId").asLong();
+    String employeeId = created.get("subjectId").asText();
     JsonNode draft =
         response(
             postJson(UPDATE, maker, Map.of("subjectId", employeeId))
                 .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.subjectId").value(employeeId))
                 .andExpect(jsonPath("$.baselineVersion").value(1)));
     ObjectNode target = (ObjectNode) draft.get("target").deepCopy();
     String name = "Updated " + UUID.randomUUID();
@@ -134,6 +138,7 @@ class EmployeeIntegrationTests {
     assertEmployees(name, 0);
     approve(UPDATE, submitted);
     mvc.perform(get("/api/employees/" + employeeId).session(maker.session()))
+        .andExpect(jsonPath("$.id").value(employeeId))
         .andExpect(jsonPath("$.profile.fullName").value(name))
         .andExpect(jsonPath("$.profile.avatar").isEmpty())
         .andExpect(jsonPath("$.version").value(2));
@@ -328,9 +333,11 @@ class EmployeeIntegrationTests {
     ObjectNode shape = profile("Invalid shape");
     shape.remove("contacts");
     postJson(CREATE, maker, Map.of("target", shape)).andExpect(status().isBadRequest());
-    postJson(CREATE, maker, Map.of("subjectId", 1)).andExpect(status().isBadRequest());
+    postJson(CREATE, maker, Map.of("subjectId", UUID.randomUUID()))
+        .andExpect(status().isBadRequest());
     postJson(UPDATE, maker, Map.of()).andExpect(status().isBadRequest());
-    postJson(UPDATE, maker, Map.of("subjectId", Long.MAX_VALUE)).andExpect(status().isNotFound());
+    postJson(UPDATE, maker, Map.of("subjectId", UUID.randomUUID()))
+        .andExpect(status().isNotFound());
   }
 
   @Test
@@ -378,7 +385,7 @@ class EmployeeIntegrationTests {
   void competingUpdatesCannotOverwriteANewerApprovedProfile() throws Exception {
     JsonNode creation =
         approve(CREATE, submission(CREATE, profile("Baseline " + UUID.randomUUID())));
-    long employeeId = creation.get("subjectId").asLong();
+    String employeeId = creation.get("subjectId").asText();
     ObjectNode target = (ObjectNode) creation.get("target").deepCopy();
     target.put("fullName", "First approved " + UUID.randomUUID());
     JsonNode first = updateSubmission(employeeId, target);
@@ -473,7 +480,41 @@ class EmployeeIntegrationTests {
     mvc.perform(get("/api/employee-requests").session(maker.session()).param("pageSize", "0"))
         .andExpect(status().isBadRequest());
     mvc.perform(get("/api/employees/9223372036854775807").session(maker.session()))
+        .andExpect(status().isBadRequest());
+    mvc.perform(get("/api/employees/" + UUID.randomUUID()).session(maker.session()))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void employeeUuidIsConsistentAcrossApiAndInternalForeignKeys() throws Exception {
+    String name = "UUID employee " + UUID.randomUUID();
+    JsonNode creation = approve(CREATE, submission(CREATE, profile(name)));
+    String publicId = creation.get("subjectId").asText();
+    long databaseId =
+        jdbc.queryForObject("SELECT id FROM employee WHERE public_id = ?", Long.class, publicId);
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT subject_id FROM employee_request WHERE id = ?",
+                Long.class,
+                creation.get("id").asLong()))
+        .isEqualTo(databaseId);
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT employee_id FROM employee_contact WHERE employee_id = ?",
+                Long.class,
+                databaseId))
+        .isEqualTo(databaseId);
+    mvc.perform(get("/api/employees").session(maker.session()).param("search", name))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items[0].id").value(publicId));
+    mvc.perform(get(CREATE + "/" + creation.get("id").asLong()).session(reviewer.session()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.subjectId").value(publicId));
+    postJson(UPDATE, maker, Map.of("subjectId", databaseId)).andExpect(status().isBadRequest());
+    postJson(UPDATE, maker, Map.of("subjectId", "not-a-uuid")).andExpect(status().isBadRequest());
+    JsonNode second =
+        approve(CREATE, submission(CREATE, profile("Other UUID " + UUID.randomUUID())));
+    assertThat(second.get("subjectId").asText()).isNotEqualTo(publicId);
   }
 
   @Test
@@ -483,6 +524,15 @@ class EmployeeIntegrationTests {
         .andExpect(jsonPath("$.paths['/api/employees'].get").exists())
         .andExpect(jsonPath("$.paths['/api/employee-creation-requests'].post").exists())
         .andExpect(jsonPath("$.paths['/api/employee-update-requests/{id}/approve'].post").exists());
+    JsonNode spec = response(mvc.perform(get("/v3/api-docs")).andExpect(status().isOk()));
+    JsonNode parameters = spec.get("paths").get("/api/employees/{id}").get("get").get("parameters");
+    JsonNode employeeIdParameter =
+        java.util.stream.StreamSupport.stream(parameters.spliterator(), false)
+            .filter(parameter -> parameter.get("name").asText().equals("id"))
+            .findFirst()
+            .orElseThrow();
+    assertThat(employeeIdParameter.get("schema").get("type").asText()).isEqualTo("string");
+    assertThat(employeeIdParameter.get("schema").get("format").asText()).isEqualTo("uuid");
   }
 
   private Actor account(String role) throws Exception {
@@ -563,7 +613,7 @@ class EmployeeIntegrationTests {
             .andExpect(status().isCreated()));
   }
 
-  private JsonNode updateSubmission(long employeeId, ObjectNode target) throws Exception {
+  private JsonNode updateSubmission(String employeeId, ObjectNode target) throws Exception {
     return response(
         postJson(
                 UPDATE + "/submissions",

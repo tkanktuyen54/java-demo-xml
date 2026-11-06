@@ -165,13 +165,17 @@ public class EmployeeRequestRepository {
     values.add(((long) page - 1) * size);
     var items =
         jdbc.query(
-            "SELECT r.*, e.employee_code, e.public_id AS subject_public_id " + from + " ORDER BY r.id DESC LIMIT ? OFFSET ?",
+            "SELECT r.*, e.employee_code, e.public_id AS subject_public_id "
+                + from
+                + " ORDER BY r.id DESC LIMIT ? OFFSET ?",
             (rs, row) ->
                 new ListItem(
                     rs.getLong("id"),
                     Type.valueOf(rs.getString("type")),
                     State.valueOf(rs.getString("state")),
-                    rs.getString("subject_public_id") == null ? null : UUID.fromString(rs.getString("subject_public_id")),
+                    rs.getString("subject_public_id") == null
+                        ? null
+                        : UUID.fromString(rs.getString("subject_public_id")),
                     rs.getString("employee_code"),
                     rs.getString("target_name"),
                     rs.getLong("requester_id"),

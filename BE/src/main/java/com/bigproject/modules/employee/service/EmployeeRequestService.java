@@ -300,11 +300,25 @@ public class EmployeeRequestService {
   }
 
   private Detail publicDetail(EmployeeRequest request) {
-    var subjectId = request.subjectId() == null ? null : profiles.require(request.subjectId(), false).publicId();
-    return new Detail(request.id(), request.type(), request.state(), subjectId, request.requesterId(),
-        request.baselineVersion(), request.baseline(), request.target(), request.version(),
-        request.revisionNumber(), request.latestRevisionId(), request.reason(),
-        request.createdAtUtc(), request.lastModifiedAtUtc());
+    var subjectId =
+        request.subjectId() == null
+            ? null
+            : profiles.require(request.subjectId(), false).publicId();
+    return new Detail(
+        request.id(),
+        request.type(),
+        request.state(),
+        subjectId,
+        request.requesterId(),
+        request.baselineVersion(),
+        request.baseline(),
+        request.target(),
+        request.version(),
+        request.revisionNumber(),
+        request.latestRevisionId(),
+        request.reason(),
+        request.createdAtUtc(),
+        request.lastModifiedAtUtc());
   }
 
   private static void version(EmployeeRequest request, long version) {

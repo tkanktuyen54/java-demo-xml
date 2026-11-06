@@ -105,18 +105,27 @@ public class EmployeeRepository {
   }
 
   public Optional<Employee> findByPublicId(UUID publicId, boolean lock) {
-    return jdbc.query(
-        "SELECT * FROM employee WHERE public_id = ?" + (lock ? " FOR UPDATE" : ""),
-        this::mapEmployee, publicId.toString()).stream().findFirst();
+    return jdbc
+        .query(
+            "SELECT * FROM employee WHERE public_id = ?" + (lock ? " FOR UPDATE" : ""),
+            this::mapEmployee,
+            publicId.toString())
+        .stream()
+        .findFirst();
   }
 
   private Employee mapEmployee(ResultSet rs, int row) throws SQLException {
     return new Employee(
-        rs.getLong("id"), UUID.fromString(rs.getString("public_id")),
-        rs.getString("employee_code"), Status.valueOf(rs.getString("status")),
-        json.read(rs.getString("profile_json")), rs.getLong("version"),
+        rs.getLong("id"),
+        UUID.fromString(rs.getString("public_id")),
+        rs.getString("employee_code"),
+        Status.valueOf(rs.getString("status")),
+        json.read(rs.getString("profile_json")),
+        rs.getLong("version"),
         rs.getTimestamp("created_at").toInstant(),
-        rs.getTimestamp("last_modified_at") == null ? null : rs.getTimestamp("last_modified_at").toInstant());
+        rs.getTimestamp("last_modified_at") == null
+            ? null
+            : rs.getTimestamp("last_modified_at").toInstant());
   }
 
   public long create(EmployeeProfile profile, Instant now) {
